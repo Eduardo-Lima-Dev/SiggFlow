@@ -13,7 +13,7 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-enum Curso {
+enum CursoEnum {
   CIENCIA_COMPUTACAO
   DESIGN_DIGITAL
   ENGENHARIA_COMPUTACAO
@@ -27,12 +27,45 @@ model User {
   name          String
   email         String    @unique
   password      String
-  curso         Curso
-  semestre      Int?
+  curso         CursoEnum
+  // semestre      Int?
   emailVerified DateTime?
   image         String?
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
   @@map("users")
+}
+
+model Curso {
+  id          String       @id @default(cuid())
+  nome        String
+  codigo      String       @unique
+  disciplinas Disciplina[]
+  curriculos  Curriculo[]
+}
+
+model Curriculo {
+  id          String       @id @default(cuid())
+  nome        String
+  ano         Int
+  cursoId     String
+  curso       Curso        @relation(fields: [cursoId], references: [id])
+  disciplinas Disciplina[]
+  optativas   Disciplina[] @relation("OptativasCurriculo")
+}
+
+model Disciplina {
+  id            String   @id @default(cuid())
+  nome          String
+  codigo        String
+  cargaHoraria  Int
+  semestre      Int
+  obrigatoria   Boolean
+  cursoId       String
+  curso         Curso    @relation(fields: [cursoId], references: [id])
+  preRequisitos String
+  curriculoId   String?
+  curriculo     Curriculo? @relation(fields: [curriculoId], references: [id])
+  optativaDe    Curriculo[] @relation("OptativasCurriculo")
 }

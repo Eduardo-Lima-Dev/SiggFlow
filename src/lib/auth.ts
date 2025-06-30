@@ -40,7 +40,7 @@ export const authOptions: NextAuthOptions = {
           email: user.email,
           name: user.name,
           curso: user.curso,
-          semestre: user.semestre,
+          // semestre: user.semestre,
         };
       }
     })
