@@ -2,6 +2,7 @@
 
 import { useSession, signOut } from "next-auth/react";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import { useState } from "react";
 
 const cursoLabels = {
   CIENCIA_COMPUTACAO: "Ciência da Computação",
@@ -14,6 +15,24 @@ const cursoLabels = {
 
 export default function DashboardPage() {
   const { data: session } = useSession();
+  const [disciplinas, setDisciplinas] = useState<any>(null);
+  const [loading, setLoading] = useState(false);
+  const [erro, setErro] = useState("");
+
+  async function handleVerDisciplinas() {
+    setLoading(true);
+    setErro("");
+    try {
+      const res = await fetch("/api/disciplinas");
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Erro ao buscar disciplinas");
+      setDisciplinas(data);
+    } catch (e: any) {
+      setErro(e.message);
+    } finally {
+      setLoading(false);
+    }
+  }
 
   return (
     <ProtectedRoute>
@@ -66,7 +85,7 @@ export default function DashboardPage() {
                       Ações Rápidas
                     </h3>
                     <div className="space-y-3">
-                      <button className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-4 rounded-md transition duration-150 ease-in-out">
+                      <button className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-4 rounded-md transition duration-150 ease-in-out" onClick={handleVerDisciplinas}>
                         Ver Disciplinas
                       </button>
                       <button className="w-full bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-md transition duration-150 ease-in-out">
@@ -78,6 +97,26 @@ export default function DashboardPage() {
                     </div>
                   </div>
                 </div>
+
+                {disciplinas && (
+                  <div className="mt-8 bg-white p-6 rounded-lg shadow">
+                    <h4 className="text-xl font-bold mb-4">Disciplinas do Currículo: {disciplinas.curriculo}</h4>
+                    {Object.keys(disciplinas.disciplinas).sort((a, b) => Number(a) - Number(b)).map(semestre => (
+                      <div key={semestre} className="mb-6">
+                        <h5 className="text-lg font-semibold mb-2">{semestre}º Semestre</h5>
+                        <ul className="list-disc ml-6">
+                          {disciplinas.disciplinas[semestre].map((disc: any) => (
+                            <li key={disc.id} className="mb-1">
+                              <span className="font-medium">{disc.nome}</span> ({disc.codigo}) - {disc.cargaHoraria}h {disc.obrigatoria ? "[Obrigatória]" : "[Optativa]"}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                {loading && <div className="mt-4 text-blue-600">Carregando disciplinas...</div>}
+                {erro && <div className="mt-4 text-red-600">{erro}</div>}
               </div>
             </div>
           </div>
