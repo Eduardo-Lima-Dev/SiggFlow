@@ -15,14 +15,15 @@ const registerSchema = z.object({
     "REDES_COMPUTADORES",
     "SISTEMAS_INFORMACAO"
   ]),
-  semestre: z.number().min(1).max(10, "Semestre deve estar entre 1 e 10")
+  // semestre: z.number().min(1).max(10, "Semestre deve estar entre 1 e 10")
 });
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     
-    const { name, email, password, curso, semestre } = registerSchema.parse(body);
+    // const { name, email, password, curso, semestre } = registerSchema.parse(body);
+    const { name, email, password, curso } = registerSchema.parse(body);
 
     // Verificar se o usuário já existe
     const existingUser = await prisma.user.findUnique({
@@ -46,7 +47,7 @@ export async function POST(request: NextRequest) {
         email,
         password: hashedPassword,
         curso,
-        semestre
+        // semestre
       }
     });
 

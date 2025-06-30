@@ -54,10 +54,10 @@ export default function DashboardPage() {
                           {session?.user?.curso ? cursoLabels[session.user.curso as keyof typeof cursoLabels] : "N/A"}
                         </dd>
                       </div>
-                      <div>
+                      {/* <div>
                         <dt className="text-sm font-medium text-gray-500">Semestre</dt>
                         <dd className="text-sm text-gray-900">{session?.user?.semestre}º</dd>
-                      </div>
+                      </div> */}
                     </dl>
                   </div>
 

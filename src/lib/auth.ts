@@ -52,7 +52,7 @@ export const authOptions: NextAuthOptions = {
     async jwt({ token, user }) {
       if (user) {
         token.curso = user.curso;
-        token.semestre = user.semestre;
+        // token.semestre = user.semestre;
       }
       return token;
     },
@@ -60,7 +60,7 @@ export const authOptions: NextAuthOptions = {
       if (token) {
         session.user.id = token.sub!;
         session.user.curso = token.curso as any;
-        session.user.semestre = token.semestre as number;
+        // session.user.semestre = token.semestre as number;
       }
       return session;
     }

@@ -28,7 +28,7 @@ model User {
   email         String    @unique
   password      String
   curso         Curso
-  semestre      Int
+  semestre      Int?
   emailVerified DateTime?
   image         String?
   createdAt     DateTime  @default(now())

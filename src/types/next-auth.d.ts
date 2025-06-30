@@ -8,7 +8,7 @@ declare module "next-auth" {
       email?: string | null;
       image?: string | null;
       curso?: string;
-      semestre?: number;
+      // semestre?: number;
     };
   }
 
@@ -17,13 +17,13 @@ declare module "next-auth" {
     name: string;
     email: string;
     curso: string;
-    semestre: number;
+    // semestre: number;
   }
 }
 
 declare module "next-auth/jwt" {
   interface JWT {
     curso?: string;
-    semestre?: number;
+    // semestre?: number;
   }
 } 

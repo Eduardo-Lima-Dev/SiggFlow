@@ -20,7 +20,7 @@ export default function CadastroPage() {
     email: "",
     password: "",
     curso: "",
-    semestre: ""
+    // semestre: ""
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -45,7 +45,7 @@ export default function CadastroPage() {
         },
         body: JSON.stringify({
           ...formData,
-          semestre: parseInt(formData.semestre)
+          // semestre: parseInt(formData.semestre)
         }),
       });
 
@@ -147,7 +147,7 @@ export default function CadastroPage() {
               </select>
             </div>
 
-            <div>
+            {/* <div>
               <label htmlFor="semestre" className="block text-sm font-medium text-gray-700">
                 Semestre
               </label>
@@ -163,7 +163,7 @@ export default function CadastroPage() {
                 className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
                 placeholder="1-10"
               />
-            </div>
+            </div> */}
           </div>
 
           {error && (
