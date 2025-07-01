@@ -1,108 +1,13 @@
 "use client";
 
-import { useState } from "react";
-import { useSearchParams, useRouter } from "next/navigation";
+export const dynamic = "force-dynamic";
+import { Suspense } from "react";
+import ResetPasswordClient from "./ResetPasswordClient";
 
 export default function ResetPasswordPage() {
-  const searchParams = useSearchParams();
-  const router = useRouter();
-  const token = searchParams.get("token") || "";
-  const [password, setPassword] = useState("");
-  const [confirm, setConfirm] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    setError("");
-    setSuccess("");
-    if (!token) {
-      setError("Token inválido ou ausente.");
-      setLoading(false);
-      return;
-    }
-    if (password.length < 6) {
-      setError("A senha deve ter pelo menos 6 caracteres.");
-      setLoading(false);
-      return;
-    }
-    if (password !== confirm) {
-      setError("As senhas não coincidem.");
-      setLoading(false);
-      return;
-    }
-    try {
-      const res = await fetch("/api/reset-password/confirm", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ token, password }),
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        setError(data.message || "Erro ao redefinir senha");
-      } else {
-        setSuccess("Senha redefinida com sucesso! Você pode fazer login.");
-        setTimeout(() => router.push("/login?message=Senha redefinida com sucesso!"), 2000);
-      }
-    } catch (err) {
-      setError("Erro ao redefinir senha");
-    } finally {
-      setLoading(false);
-    }
-  };
-
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#131a1b]">
-      <div className="w-full max-w-md bg-[#181f20] rounded-2xl shadow-lg p-8 border border-[#222b2c]">
-        <h2 className="text-2xl font-bold text-white mb-6 text-center">Redefinir senha</h2>
-        <form className="space-y-6" onSubmit={handleSubmit}>
-          <div className="space-y-4">
-            <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-300 mb-1">Nova senha</label>
-              <input
-                id="password"
-                name="password"
-                type="password"
-                required
-                minLength={6}
-                value={password}
-                onChange={e => setPassword(e.target.value)}
-                className="w-full px-3 py-2 rounded-md bg-[#181f20] border border-[#2c3536] text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#219EBC] focus:border-[#219EBC] sm:text-sm"
-                placeholder="Digite a nova senha"
-              />
-            </div>
-            <div>
-              <label htmlFor="confirm" className="block text-sm font-medium text-gray-300 mb-1">Confirmar senha</label>
-              <input
-                id="confirm"
-                name="confirm"
-                type="password"
-                required
-                minLength={6}
-                value={confirm}
-                onChange={e => setConfirm(e.target.value)}
-                className="w-full px-3 py-2 rounded-md bg-[#181f20] border border-[#2c3536] text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#219EBC] focus:border-[#219EBC] sm:text-sm"
-                placeholder="Confirme a nova senha"
-              />
-            </div>
-          </div>
-          {error && (
-            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md text-sm">{error}</div>
-          )}
-          {success && (
-            <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-md text-sm">{success}</div>
-          )}
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full py-2 px-4 rounded-md text-white bg-[#219EBC] hover:bg-[#126782] font-semibold text-lg disabled:opacity-50 disabled:cursor-not-allowed mt-2"
-          >
-            {loading ? "Redefinindo..." : "Redefinir senha"}
-          </button>
-        </form>
-      </div>
-    </div>
+    <Suspense fallback={<div>Carregando...</div>}>
+      <ResetPasswordClient />
+    </Suspense>
   );
 } 
