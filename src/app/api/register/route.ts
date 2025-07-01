@@ -9,7 +9,7 @@ const registerSchema = z.object({
   password: z.string().min(6, "Senha deve ter pelo menos 6 caracteres"),
   curso: z.enum([
     "CIENCIA_COMPUTACAO",
-    "DESIGN_DIGITAL", 
+    "DESIGN_DIGITAL",
     "ENGENHARIA_COMPUTACAO",
     "ENGENHARIA_SOFTWARE",
     "REDES_COMPUTADORES",
