@@ -12,19 +12,29 @@ const STATUS = [
 ];
 
 export default function ProgressoPage() {
-  const { data: session, status } = useSession();
+  const { data: session, status, update } = useSession();
   const [semestres, setSemestres] = useState<number[]>([]);
   const [semestreSelecionado, setSemestreSelecionado] = useState<number | null>(null);
   const [disciplinas, setDisciplinas] = useState<Record<number, any[]>>({});
   const [progresso, setProgresso] = useState<Record<string, { status: string; semestre: number }>>({});
   const [loading, setLoading] = useState(false);
+  const [loadingUser, setLoadingUser] = useState(true);
   const router = useRouter();
 
   useEffect(() => {
     if (status === "loading") return;
-    if (session?.user && (session.user as any).completedOnboarding === true) {
-      router.replace("/dashboard");
-    }
+    if (!session) return;
+    // Busca o usuário atualizado do banco
+    setLoadingUser(true);
+    fetch("/api/me")
+      .then(res => res.json())
+      .then(data => {
+        setLoadingUser(false);
+        if (data.user && data.user.completedOnboarding === true) {
+          router.replace("/dashboard");
+        }
+      })
+      .catch(() => setLoadingUser(false));
   }, [session, status, router]);
 
   useEffect(() => {
@@ -59,11 +69,22 @@ export default function ProgressoPage() {
     });
     setLoading(false);
     if (res.ok) {
-      // Redireciona para dashboard após salvar
-      router.push("/dashboard");
+      await update();
+      router.replace("/dashboard");
     } else {
       alert("Erro ao salvar progresso");
     }
+  }
+
+  if (status === "loading" || loadingUser) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#1a2324]">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-indigo-600 mx-auto"></div>
+          <p className="mt-4 text-gray-300">Verificando autenticação...</p>
+        </div>
+      </div>
+    );
   }
 
   return (

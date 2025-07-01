@@ -15,6 +15,7 @@ export const authOptions: NextAuthOptions = {
         console.log('INICIANDO AUTHORIZE', credentials);
         try {
           if (!credentials?.email || !credentials?.password) {
+            console.log('Faltando email ou senha');
             return null;
           }
 
@@ -34,6 +35,7 @@ export const authOptions: NextAuthOptions = {
 
           console.log('USER FOUND:', user);
           if (!user) {
+            console.log('Usuário não encontrado');
             return null;
           }
 
@@ -46,6 +48,7 @@ export const authOptions: NextAuthOptions = {
           console.log('IS PASSWORD VALID?', isPasswordValid);
 
           if (!isPasswordValid) {
+            console.log('Senha inválida');
             return null;
           }
 
