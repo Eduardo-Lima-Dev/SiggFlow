@@ -2,7 +2,8 @@
 
 import { useSession, signOut } from "next-auth/react";
 import ProtectedRoute from "@/components/ProtectedRoute";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 
 const cursoLabels = {
   CIENCIA_COMPUTACAO: "Ciência da Computação",
@@ -14,10 +15,18 @@ const cursoLabels = {
 };
 
 export default function DashboardPage() {
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
+  const router = useRouter();
   const [disciplinas, setDisciplinas] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [erro, setErro] = useState("");
+
+  useEffect(() => {
+    if (status === "loading") return;
+    if (session?.user && (session.user as any).completedOnboarding === false) {
+      router.replace("/progresso");
+    }
+  }, [session, status, router]);
 
   async function handleVerDisciplinas() {
     setLoading(true);

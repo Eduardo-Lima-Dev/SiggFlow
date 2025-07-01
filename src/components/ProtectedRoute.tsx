@@ -17,6 +17,8 @@ export default function ProtectedRoute({ children }: ProtectedRouteProps) {
     
     if (!session) {
       router.push("/login");
+    } else if ((session.user as any).completedOnboarding === false && window.location.pathname !== "/progresso") {
+      router.replace("/progresso");
     }
   }, [session, status, router]);
 

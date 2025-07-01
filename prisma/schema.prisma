@@ -22,6 +22,13 @@ enum CursoEnum {
   SISTEMAS_INFORMACAO
 }
 
+enum StatusDisciplina {
+  CONCLUIDA
+  EM_ANDAMENTO
+  PENDENTE
+  REPROVADA
+}
+
 model User {
   id            String    @id @default(cuid())
   name          String
@@ -33,8 +40,10 @@ model User {
   image         String?
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
+  completedOnboarding Boolean @default(false)
 
   passwordResetTokens PasswordResetToken[]
+  disciplinasProgresso UserDisciplinaProgresso[]
 
   @@map("users")
 }
@@ -70,6 +79,7 @@ model Disciplina {
   curriculoId   String?
   curriculo     Curriculo?  @relation(fields: [curriculoId], references: [id])
   optativaDe    Curriculo[] @relation("OptativasCurriculo")
+  usuariosProgresso UserDisciplinaProgresso[]
 }
 
 model PasswordResetToken {
@@ -79,4 +89,18 @@ model PasswordResetToken {
   userId    String
   expiresAt DateTime
   createdAt DateTime @default(now())
+}
+
+model UserDisciplinaProgresso {
+  id          String   @id @default(cuid())
+  user        User     @relation(fields: [userId], references: [id])
+  userId      String
+  disciplina  Disciplina @relation(fields: [disciplinaId], references: [id])
+  disciplinaId String
+  semestre    Int
+  status      StatusDisciplina @default(PENDENTE)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@unique([userId, disciplinaId])
 }

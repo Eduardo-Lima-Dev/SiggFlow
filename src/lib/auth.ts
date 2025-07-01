@@ -12,36 +12,56 @@ export const authOptions: NextAuthOptions = {
         password: { label: "Senha", type: "password" }
       },
       async authorize(credentials) {
-        if (!credentials?.email || !credentials?.password) {
-          return null;
-        }
-
-        const user = await prisma.user.findUnique({
-          where: {
-            email: credentials.email
+        console.log('INICIANDO AUTHORIZE', credentials);
+        try {
+          if (!credentials?.email || !credentials?.password) {
+            return null;
           }
-        });
 
-        if (!user) {
+          const user = await prisma.user.findUnique({
+            where: {
+              email: credentials.email
+            },
+            select: {
+              id: true,
+              email: true,
+              name: true,
+              curso: true,
+              password: true,
+              completedOnboarding: true,
+            }
+          });
+
+          console.log('USER FOUND:', user);
+          if (!user) {
+            return null;
+          }
+
+          console.log('PASSWORD RECEBIDA:', credentials.password);
+          console.log('HASH NO BANCO:', user.password);
+          const isPasswordValid = await bcrypt.compare(
+            credentials.password,
+            user.password
+          );
+          console.log('IS PASSWORD VALID?', isPasswordValid);
+
+          if (!isPasswordValid) {
+            return null;
+          }
+
+          console.log('USER AUTHORIZED:', user);
+          return {
+            id: user.id,
+            email: user.email,
+            name: user.name,
+            curso: user.curso,
+            completedOnboarding: user.completedOnboarding,
+            // semestre: user.semestre,
+          };
+        } catch (e) {
+          console.error('ERRO NO AUTHORIZE:', e);
           return null;
         }
-
-        const isPasswordValid = await bcrypt.compare(
-          credentials.password,
-          user.password
-        );
-
-        if (!isPasswordValid) {
-          return null;
-        }
-
-        return {
-          id: user.id,
-          email: user.email,
-          name: user.name,
-          curso: user.curso,
-          // semestre: user.semestre,
-        };
       }
     })
   ],
@@ -52,6 +72,7 @@ export const authOptions: NextAuthOptions = {
     async jwt({ token, user }) {
       if (user) {
         token.curso = user.curso;
+        token.completedOnboarding = (user as any).completedOnboarding;
         // token.semestre = user.semestre;
       }
       return token;
@@ -60,6 +81,7 @@ export const authOptions: NextAuthOptions = {
       if (token) {
         session.user.id = token.sub!;
         session.user.curso = token.curso as any;
+        (session.user as any).completedOnboarding = token.completedOnboarding as boolean;
         // session.user.semestre = token.semestre as number;
       }
       return session;
