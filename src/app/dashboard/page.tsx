@@ -4,9 +4,10 @@ import React, { useState, useEffect } from 'react';
 import { useSession, signOut } from 'next-auth/react';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import { useRouter } from 'next/navigation';
-import { Switch } from '@headlessui/react';
+import { Switch, Dialog } from '@headlessui/react';
 import { PlusIcon, FunnelIcon } from '@heroicons/react/24/outline';
 import SemesterColumn from '@/components/SemesterColumn';
+import DisciplinaModal from '@/components/DisciplinaModal';
 
 const cursoLabels: Record<string, string> = {
   CIENCIA_COMPUTACAO: 'Ciência da Computação',
@@ -36,6 +37,10 @@ export default function DashboardPage() {
   const [disciplinas, setDisciplinas] = useState<DisciplinasAPIResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [erro, setErro] = useState('');
+  const [modalDisciplina, setModalDisciplina] = useState<any | null>(null);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [modalPreRequisitos, setModalPreRequisitos] = useState<any[]>([]);
+  const [modalDependentes, setModalDependentes] = useState<any[]>([]);
 
   useEffect(() => {
     if (status !== 'authenticated') return;
@@ -83,6 +88,38 @@ export default function DashboardPage() {
 
   const totalCompletas = Object.values(disciplinas?.completas || {}).reduce((acc, arr) => acc + arr.length, 0);
   const totalPendentes = Object.values(disciplinas?.pendentes || {}).reduce((acc, arr) => acc + arr.length, 0);
+
+  // Função para buscar pré-requisitos e dependentes
+  function getPreRequisitosAndDependentes(disciplina: any) {
+    if (!disciplinas) return { preRequisitos: [], dependentes: [] };
+    // Junta todas as disciplinas do curso
+    const todasDisciplinas = [
+      ...Object.values(disciplinas.completas || {}).flat(),
+      ...Object.values(disciplinas.pendentes || {}).flat()
+    ];
+    // Mapa de código para disciplina
+    const mapCodigo = Object.fromEntries(todasDisciplinas.map(d => [(d as any).codigo, d]));
+    // Progresso do usuário (por id)
+    const progresso: Record<string, string> = {};
+    todasDisciplinas.forEach(d => {
+      if ((d as any).id && (d as any).status) progresso[(d as any).id] = (d as any).status;
+    });
+    // Pré-requisitos desta disciplina
+    const codigosPre = ((disciplina.preRequisitos || '') as string).split(/[;,]/).map((s: any) => s.trim()).filter(Boolean);
+    const preRequisitos = codigosPre.map((codigo: any) => {
+      const d = mapCodigo[codigo] as any;
+      return d ? {
+        codigo,
+        nome: d.nome,
+        completa: d.status === 'CONCLUIDA',
+      } : { codigo, nome: codigo, completa: false };
+    });
+    // Disciplinas que dependem desta
+    const dependentes = todasDisciplinas.filter(d =>
+      ((d as any).preRequisitos || '').split(/[;,]/).map((s: any) => s.trim()).includes(disciplina.codigo)
+    ).map(d => ({ codigo: (d as any).codigo, nome: (d as any).nome, completa: (d as any).status === 'CONCLUIDA' }));
+    return { preRequisitos, dependentes };
+  }
 
   return (
     <ProtectedRoute>
@@ -174,10 +211,26 @@ export default function DashboardPage() {
                     ...(disciplinas!.completas[sem]?.map(d => ({ ...d, status: 'CONCLUIDA' as const })) || []),
                     ...(disciplinas!.pendentes[sem]?.map(d => ({ ...d, status: 'PENDENTE' as const })) || [])
                   ]}
+                  onDisciplinaClick={disc => {
+                    const { preRequisitos, dependentes } = getPreRequisitosAndDependentes(disc);
+                    setModalDisciplina({ ...disc, semestre: sem });
+                    setModalPreRequisitos(preRequisitos);
+                    setModalDependentes(dependentes);
+                    setModalOpen(true);
+                  }}
                 />
               ))}
             </div>
           </div>
+
+          <DisciplinaModal
+            open={modalOpen}
+            onClose={() => setModalOpen(false)}
+            disciplina={modalDisciplina}
+            setDisciplina={setModalDisciplina}
+            preRequisitos={modalPreRequisitos}
+            dependentes={modalDependentes}
+          />
         </main>
       </div>
     </ProtectedRoute>

@@ -3,6 +3,7 @@ import React from 'react';
 export interface DisciplinaBadgeProps {
   nome: string;
   status: 'CONCLUIDA' | 'EM_ANDAMENTO' | 'PENDENTE' | 'REPROVADA';
+  onClick?: () => void;
 }
 
 const statusStyles = {
@@ -12,10 +13,13 @@ const statusStyles = {
   REPROVADA: 'bg-red-700 text-red-200',
 };
 
-const DisciplinaBadge: React.FC<DisciplinaBadgeProps> = ({ nome, status }) => {
+const DisciplinaBadge: React.FC<DisciplinaBadgeProps> = ({ nome, status, onClick }) => {
   const style = statusStyles[status] || 'bg-gray-700 text-gray-200';
   return (
-    <div className={`${style} px-3 py-1 rounded-lg text-sm font-medium shadow-inner`}>
+    <div
+      className={`${style} px-3 py-1 rounded-lg text-sm font-medium shadow-inner cursor-pointer`}
+      onClick={onClick}
+    >
       {nome}
     </div>
   );

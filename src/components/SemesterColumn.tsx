@@ -9,11 +9,12 @@ export interface Disciplina {
 export interface SemesterColumnProps {
   numero: string;
   disciplinas: Disciplina[];
+  onDisciplinaClick?: (disciplina: Disciplina) => void;
 }
 
 const statusOrder = ['CONCLUIDA', 'EM_ANDAMENTO', 'PENDENTE', 'REPROVADA'];
 
-const SemesterColumn: React.FC<SemesterColumnProps> = ({ numero, disciplinas }) => {
+const SemesterColumn: React.FC<SemesterColumnProps> = ({ numero, disciplinas, onDisciplinaClick }) => {
   // Agrupa as disciplinas por status
   const grouped: Record<string, Disciplina[]> = {};
   for (const d of disciplinas) {
@@ -32,7 +33,12 @@ const SemesterColumn: React.FC<SemesterColumnProps> = ({ numero, disciplinas }) 
       <div className="p-4 flex-1 flex flex-col space-y-2">
         {statusOrder.map(status =>
           (grouped[status] || []).map(d => (
-            <DisciplinaBadge key={d.nome} nome={d.nome} status={status as DisciplinaBadgeProps['status']} />
+            <DisciplinaBadge
+              key={d.nome}
+              nome={d.nome}
+              status={status as DisciplinaBadgeProps['status']}
+              onClick={() => onDisciplinaClick?.(d)}
+            />
           ))
         )}
       </div>
