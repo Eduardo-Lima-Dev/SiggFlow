@@ -10,6 +10,7 @@ export async function POST(req: Request) {
   }
 
   const userId = session.user.id;
+  console.log('userId recebido na sessão:', userId);
   let data;
   try {
     data = await req.json();
@@ -34,12 +35,12 @@ export async function POST(req: Request) {
           },
           update: {
             status,
-            semestre,
+            semestre: Number(semestre),
           },
           create: {
             userId,
             disciplinaId,
-            semestre,
+            semestre: Number(semestre),
             status,
           },
         });

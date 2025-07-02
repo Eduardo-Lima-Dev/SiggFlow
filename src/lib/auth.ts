@@ -80,9 +80,9 @@ export const authOptions: NextAuthOptions = {
       }
       return token;
     },
-    async session({ session, token }) {
+    async session({ session, token, user }) {
       if (token) {
-        session.user.id = token.sub!;
+        session.user.id = token.sub || (user && user.id) || session.user.id;
         session.user.curso = token.curso as any;
         (session.user as any).completedOnboarding = token.completedOnboarding as boolean;
         // session.user.semestre = token.semestre as number;

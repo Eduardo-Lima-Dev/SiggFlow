@@ -41,6 +41,7 @@ export default function DashboardPage() {
   const [modalOpen, setModalOpen] = useState(false);
   const [modalPreRequisitos, setModalPreRequisitos] = useState<any[]>([]);
   const [modalDependentes, setModalDependentes] = useState<any[]>([]);
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     if (status !== 'authenticated') return;
@@ -119,6 +120,41 @@ export default function DashboardPage() {
       ((d as any).preRequisitos || '').split(/[;,]/).map((s: any) => s.trim()).includes(disciplina.codigo)
     ).map(d => ({ codigo: (d as any).codigo, nome: (d as any).nome, completa: (d as any).status === 'CONCLUIDA' }));
     return { preRequisitos, dependentes };
+  }
+
+  async function handleSalvarDisciplina() {
+    if (!modalDisciplina) return;
+    setSaving(true);
+    try {
+      await fetch('/api/disciplinas/progresso', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify([
+          {
+            disciplinaId: modalDisciplina.id,
+            status: modalDisciplina.status,
+            semestre: modalDisciplina.semestre,
+          },
+        ]),
+      });
+      setModalOpen(false);
+      // Recarregar disciplinas
+      setLoading(true);
+      fetch('/api/disciplinas')
+        .then(res => res.json())
+        .then((data: DisciplinasAPIResponse & { error?: string }) => {
+          if (data.error) {
+            setErro(data.error);
+            setDisciplinas(null);
+          } else {
+            setDisciplinas(data);
+          }
+        })
+        .catch(() => setErro('Erro ao buscar disciplinas'))
+        .finally(() => setLoading(false));
+    } finally {
+      setSaving(false);
+    }
   }
 
   return (
@@ -230,6 +266,8 @@ export default function DashboardPage() {
             setDisciplina={setModalDisciplina}
             preRequisitos={modalPreRequisitos}
             dependentes={modalDependentes}
+            onSalvar={handleSalvarDisciplina}
+            saving={saving}
           />
         </main>
       </div>

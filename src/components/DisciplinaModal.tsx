@@ -15,6 +15,8 @@ interface DisciplinaModalProps {
   setDisciplina: (d: any) => void;
   preRequisitos?: PreRequisito[];
   dependentes?: PreRequisito[];
+  onSalvar?: () => void;
+  saving?: boolean;
 }
 
 const STATUS_LABELS: Record<string, string> = {
@@ -31,7 +33,7 @@ const STATUS_COLORS: Record<string, string> = {
   REPROVADA: 'bg-red-600 text-white',
 };
 
-const DisciplinaModal: React.FC<DisciplinaModalProps> = ({ open, onClose, disciplina, setDisciplina, preRequisitos, dependentes }) => {
+const DisciplinaModal: React.FC<DisciplinaModalProps> = ({ open, onClose, disciplina, setDisciplina, preRequisitos, dependentes, onSalvar, saving }) => {
   if (!disciplina) return null;
   return (
     <Dialog open={open} onClose={onClose} className="fixed z-50 inset-0 overflow-y-auto">
@@ -93,7 +95,7 @@ const DisciplinaModal: React.FC<DisciplinaModalProps> = ({ open, onClose, discip
             </select>
           </div>
           {/* Pré-requisitos reais */}
-          {/* <div className="mb-6">
+          <div className="mb-6">
             <label className="block text-slate-400 mb-1 font-medium">Pré-Requisitos</label>
             <div className="flex flex-col gap-2 mt-2">
               {preRequisitos && preRequisitos.length > 0 ? (
@@ -107,7 +109,7 @@ const DisciplinaModal: React.FC<DisciplinaModalProps> = ({ open, onClose, discip
                 <span className="text-slate-500">Nenhum pré-requisito</span>
               )}
             </div>
-          </div> */}
+          </div>
           {/* Disciplinas que dependem desta */}
           <div className="mb-6">
             <label className="block text-slate-400 mb-1 font-medium">Disciplinas que dependem desta</label>
@@ -129,15 +131,16 @@ const DisciplinaModal: React.FC<DisciplinaModalProps> = ({ open, onClose, discip
             <button
               className="bg-slate-600 hover:bg-slate-700 text-white px-6 py-2 rounded font-semibold"
               onClick={onClose}
+              disabled={!!saving}
             >
               Cancelar
             </button>
             <button
               className="bg-teal-600 hover:bg-teal-700 text-white px-6 py-2 rounded font-semibold"
-              // TODO: Salvar progresso via API
-              onClick={onClose}
+              onClick={onSalvar}
+              disabled={!!saving}
             >
-              Salvar
+              {saving ? 'Salvando...' : 'Salvar'}
             </button>
           </div>
         </div>
