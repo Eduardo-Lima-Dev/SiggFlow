@@ -1,157 +1,185 @@
-"use client";
+'use client';
 
-import { useSession, signOut } from "next-auth/react";
-import ProtectedRoute from "@/components/ProtectedRoute";
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import React, { useState, useEffect } from 'react';
+import { useSession, signOut } from 'next-auth/react';
+import ProtectedRoute from '@/components/ProtectedRoute';
+import { useRouter } from 'next/navigation';
+import { Switch } from '@headlessui/react';
+import { PlusIcon, FunnelIcon } from '@heroicons/react/24/outline';
+import SemesterColumn from '@/components/SemesterColumn';
 
-const cursoLabels = {
-  CIENCIA_COMPUTACAO: "Ciência da Computação",
-  DESIGN_DIGITAL: "Design Digital",
-  ENGENHARIA_COMPUTACAO: "Engenharia de Computação",
-  ENGENHARIA_SOFTWARE: "Engenharia de Software",
-  REDES_COMPUTADORES: "Redes de Computadores",
-  SISTEMAS_INFORMACAO: "Sistemas de Informação"
+const cursoLabels: Record<string, string> = {
+  CIENCIA_COMPUTACAO: 'Ciência da Computação',
+  DESIGN_DIGITAL: 'Design Digital',
+  ENGENHARIA_COMPUTACAO: 'Engenharia de Computação',
+  ENGENHARIA_SOFTWARE: 'Engenharia de Software',
+  REDES_COMPUTADORES: 'Redes de Computadores',
+  SISTEMAS_INFORMACAO: 'Sistemas de Informação'
+};
+
+type DisciplinasPorSemestre = Record<string, { nome: string }[]>;
+type DisciplinasAPIResponse = {
+  curriculo: string;
+  completas: DisciplinasPorSemestre;
+  pendentes: DisciplinasPorSemestre;
 };
 
 export default function DashboardPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
-  const [disciplinas, setDisciplinas] = useState<any>(null);
-  const [loading, setLoading] = useState(false);
-  const [erro, setErro] = useState("");
-  const [loadingUser, setLoadingUser] = useState(true);
+  const [filtros, setFiltros] = useState({
+    semestre: true,
+    completos: false,
+    pendentes: false,
+    optativas: false
+  });
+  const [disciplinas, setDisciplinas] = useState<DisciplinasAPIResponse | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [erro, setErro] = useState('');
 
   useEffect(() => {
-    if (status === "loading") return;
-    if (!session) return;
-    // Busca o usuário atualizado do banco
-    setLoadingUser(true);
-    fetch("/api/me")
+    if (status !== 'authenticated') return;
+    setLoading(true);
+    fetch('/api/disciplinas')
       .then(res => res.json())
-      .then(data => {
-        setLoadingUser(false);
-        if (data.user && data.user.completedOnboarding === false) {
-          router.replace("/progresso");
+      .then((data: DisciplinasAPIResponse & { error?: string }) => {
+        if (data.error) {
+          setErro(data.error);
+          setDisciplinas(null);
+        } else {
+          setDisciplinas(data);
         }
       })
-      .catch(() => setLoadingUser(false));
-  }, [session, status, router]);
+      .catch(() => setErro('Erro ao buscar disciplinas'))
+      .finally(() => setLoading(false));
+  }, [status]);
 
-  async function handleVerDisciplinas() {
-    setLoading(true);
-    setErro("");
-    try {
-      const res = await fetch("/api/disciplinas");
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Erro ao buscar disciplinas");
-      setDisciplinas(data);
-    } catch (e: any) {
-      setErro(e.message);
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  if (status === "loading" || loadingUser) {
+  if (status === 'loading' || loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
+      <div className="min-h-screen bg-slate-900 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-indigo-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Verificando autenticação...</p>
+          <div className="animate-spin rounded-full h-24 w-24 border-t-4 border-indigo-500 mx-auto"></div>
+          <p className="mt-3 text-slate-400">Carregando disciplinas...</p>
         </div>
       </div>
     );
   }
 
+  if (erro) {
+    return (
+      <div className="min-h-screen bg-slate-900 flex items-center justify-center">
+        <p className="text-red-500">{erro}</p>
+      </div>
+    );
+  }
+
+  // reúne todos os semestres presentes em completas e pendentes
+  const semestres = Array.from(
+    new Set([
+      ...Object.keys(disciplinas?.completas || {}),
+      ...Object.keys(disciplinas?.pendentes || {})
+    ])
+  ).sort((a, b) => Number(a) - Number(b));
+
+  const totalCompletas = Object.values(disciplinas?.completas || {}).reduce((acc, arr) => acc + arr.length, 0);
+  const totalPendentes = Object.values(disciplinas?.pendentes || {}).reduce((acc, arr) => acc + arr.length, 0);
+
   return (
     <ProtectedRoute>
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-        <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-          <div className="px-4 py-6 sm:px-0">
-            <div className="bg-white overflow-hidden shadow rounded-lg">
-              <div className="px-4 py-5 sm:p-6">
-                <div className="flex justify-between items-center mb-6">
-                  <h1 className="text-3xl font-bold text-gray-900">
-                    Bem-vindo, {session?.user?.name}!
-                  </h1>
-                  <button
-                    onClick={() => signOut({ callbackUrl: "/login" })}
-                    className="bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded-md transition duration-150 ease-in-out"
-                  >
-                    Sair
-                  </button>
-                </div>
+      <div className="min-h-screen bg-slate-900 text-gray-100 flex">
+        {/* SIDEBAR */}
+        <aside className="w-64 bg-slate-800/80 backdrop-blur-md rounded-xl m-4 p-6 flex flex-col space-y-6 sticky top-4 h-[calc(100vh-2rem)] overflow-auto">
+          <div className="flex items-center justify-between">
+            <h2 className="text-xl font-semibold tracking-wide">Filtros</h2>
+            <FunnelIcon className="h-5 w-5 text-indigo-400" />
+          </div>
+          <div className="space-y-4">
+            {Object.entries(filtros).map(([key, val]) => (
+              <Switch.Group key={key} as="div" className="flex items-center justify-between">
+                <span className="font-medium capitalize">{key}</span>
+                <Switch
+                  checked={val}
+                  onChange={() => setFiltros(f => ({ ...f, [key]: !f[key as keyof typeof filtros] }))}
+                  className={`${val ? 'bg-indigo-500' : 'bg-slate-600'} relative inline-flex items-center h-6 rounded-full w-11 transition`}
+                >
+                  <span
+                    className={`${val ? 'translate-x-6' : 'translate-x-1'} inline-block w-4 h-4 transform bg-white rounded-full transition`}
+                  />
+                </Switch>
+              </Switch.Group>
+            ))}
+          </div>
+          <button className="mt-auto flex items-center justify-center gap-2 py-2 px-4 bg-indigo-500 hover:bg-indigo-600 rounded-lg font-semibold transition-shadow shadow-md hover:shadow-lg">
+            <PlusIcon className="h-5 w-5" />
+            Adicionar Optativas
+          </button>
+        </aside>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="bg-gray-50 p-6 rounded-lg">
-                    <h3 className="text-lg font-medium text-gray-900 mb-4">
-                      Informações do Aluno
-                    </h3>
-                    <dl className="space-y-3">
-                      <div>
-                        <dt className="text-sm font-medium text-gray-500">Nome</dt>
-                        <dd className="text-sm text-gray-900">{session?.user?.name}</dd>
-                      </div>
-                      <div>
-                        <dt className="text-sm font-medium text-gray-500">Email</dt>
-                        <dd className="text-sm text-gray-900">{session?.user?.email}</dd>
-                      </div>
-                      <div>
-                        <dt className="text-sm font-medium text-gray-500">Curso</dt>
-                        <dd className="text-sm text-gray-900">
-                          {session?.user?.curso ? cursoLabels[session.user.curso as keyof typeof cursoLabels] : "N/A"}
-                        </dd>
-                      </div>
-                      {/* <div>
-                        <dt className="text-sm font-medium text-gray-500">Semestre</dt>
-                        <dd className="text-sm text-gray-900">{session?.user?.semestre}º</dd>
-                      </div> */}
-                    </dl>
-                  </div>
+        {/* MAIN CONTENT */}
+        <main className="flex-1 flex flex-col space-y-6 m-4">
+          {/* HEADER */}
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between space-y-4 md:space-y-0">
+            <h1 className="text-4xl font-extrabold">Bem-vindo, {session?.user?.name}!</h1>
+            <button
+              onClick={() => signOut({ callbackUrl: '/login' })}
+              className="px-5 py-2 bg-red-500 hover:bg-red-600 rounded-full font-medium transition-colors"
+            >
+              Sair
+            </button>
+          </div>
 
-                  <div className="bg-gray-50 p-6 rounded-lg">
-                    <h3 className="text-lg font-medium text-gray-900 mb-4">
-                      Ações Rápidas
-                    </h3>
-                    <div className="space-y-3">
-                      <button className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-4 rounded-md transition duration-150 ease-in-out" onClick={handleVerDisciplinas}>
-                        Ver Disciplinas
-                      </button>
-                      <button className="w-full bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-md transition duration-150 ease-in-out">
-                        Ver Notas
-                      </button>
-                      <button className="w-full bg-purple-600 hover:bg-purple-700 text-white font-medium py-2 px-4 rounded-md transition duration-150 ease-in-out">
-                        Ver Horário
-                      </button>
-                    </div>
-                  </div>
-                </div>
-
-                {disciplinas && (
-                  <div className="mt-8 bg-white p-6 rounded-lg shadow">
-                    <h4 className="text-xl font-bold mb-4">Disciplinas do Currículo: {disciplinas.curriculo}</h4>
-                    {Object.keys(disciplinas.disciplinas).sort((a, b) => Number(a) - Number(b)).map(semestre => (
-                      <div key={semestre} className="mb-6">
-                        <h5 className="text-lg font-semibold mb-2">{semestre}º Semestre</h5>
-                        <ul className="list-disc ml-6">
-                          {disciplinas.disciplinas[semestre].map((disc: any) => (
-                            <li key={disc.id} className="mb-1">
-                              <span className="font-medium">{disc.nome}</span> ({disc.codigo}) - {disc.cargaHoraria}h {disc.obrigatoria ? "[Obrigatória]" : "[Optativa]"}
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    ))}
-                  </div>
-                )}
-                {loading && <div className="mt-4 text-blue-600">Carregando disciplinas...</div>}
-                {erro && <div className="mt-4 text-red-600">{erro}</div>}
+          {/* INFO DO ALUNO */}
+          <div className="bg-slate-800 rounded-xl p-5 flex flex-col md:flex-row justify-between space-y-4 md:space-y-0">
+            {[
+              { label: 'Nome', value: session?.user?.name },
+              { label: 'Email', value: session?.user?.email },
+              {
+                label: 'Curso',
+                value: session?.user?.curso
+                  ? cursoLabels[session.user.curso as keyof typeof cursoLabels]
+                  : 'N/A'
+              }
+            ].map(({ label, value }) => (
+              <div key={label} className="flex flex-col">
+                <span className="text-sm text-slate-400">{label}</span>
+                <span className="font-semibold">{value}</span>
               </div>
+            ))}
+          </div>
+
+          {/* CARDS DE CONTAGEM */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            {[
+              { label: 'Matérias Completas', value: totalCompletas, color: 'green' },
+              { label: 'Matérias Pendentes', value: totalPendentes, color: 'yellow' }
+            ].map(card => (
+              <div
+                key={card.label}
+                className="bg-slate-800 rounded-2xl p-6 flex flex-col items-center shadow-lg hover:shadow-xl transition-shadow"
+              >
+                <span className="text-4xl font-bold">{card.value}</span>
+                <span className={`mt-2 text-${card.color}-400 font-medium`}>{card.label}</span>
+              </div>
+            ))}
+          </div>
+
+          {/* GRID DE SEMESTRES COM SCROLL HORIZONTAL */}
+          <div className="overflow-x-auto py-4">
+            <div className="grid grid-flow-col auto-cols-fr gap-20 px-4">
+              {semestres.map(sem => (
+                <SemesterColumn
+                  key={sem}
+                  numero={sem}
+                  disciplinas={[
+                    ...(disciplinas!.completas[sem]?.map(d => ({ ...d, status: 'CONCLUIDA' as const })) || []),
+                    ...(disciplinas!.pendentes[sem]?.map(d => ({ ...d, status: 'PENDENTE' as const })) || [])
+                  ]}
+                />
+              ))}
             </div>
           </div>
-        </div>
+        </main>
       </div>
     </ProtectedRoute>
   );
-} 
+}

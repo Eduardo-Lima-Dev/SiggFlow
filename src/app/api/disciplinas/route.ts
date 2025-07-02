@@ -52,18 +52,44 @@ export async function GET(req: Request) {
     return NextResponse.json({ error: 'Currículo não encontrado' }, { status: 404 });
   }
 
-  // Busca as disciplinas do currículo, agrupadas por semestre
+  // Busca todas as disciplinas do currículo
   const disciplinas = await prisma.disciplina.findMany({
     where: { curriculoId: curriculo.id },
     orderBy: [{ semestre: 'asc' }, { nome: 'asc' }],
   });
 
-  // Agrupa por semestre
-  const agrupadas = disciplinas.reduce((acc, disc) => {
-    if (!acc[disc.semestre]) acc[disc.semestre] = [];
-    acc[disc.semestre].push(disc);
-    return acc;
-  }, {} as Record<number, typeof disciplinas>);
+  // Busca o progresso do usuário nessas disciplinas
+  const userEmail = session.user.email as string;
+  const progresso = await prisma.userDisciplinaProgresso.findMany({
+    where: {
+      user: { email: userEmail },
+      disciplinaId: { in: disciplinas.map(d => d.id) },
+    },
+    select: {
+      disciplinaId: true,
+      status: true,
+    },
+  });
+  const progressoMap = new Map(progresso.map(p => [p.disciplinaId, p.status]));
 
-  return NextResponse.json({ curriculo: curriculo.nome, disciplinas: agrupadas });
+  // Separar disciplinas em completas e pendentes, agrupadas por semestre
+  const completas: Record<number, any[]> = {};
+  const pendentes: Record<number, any[]> = {};
+
+  for (const disc of disciplinas) {
+    const status = progressoMap.get(disc.id);
+    if (status === 'CONCLUIDA') {
+      if (!completas[disc.semestre]) completas[disc.semestre] = [];
+      completas[disc.semestre].push(disc);
+    } else {
+      if (!pendentes[disc.semestre]) pendentes[disc.semestre] = [];
+      pendentes[disc.semestre].push(disc);
+    }
+  }
+
+  return NextResponse.json({
+    curriculo: curriculo.nome,
+    completas,
+    pendentes
+  });
 } 
