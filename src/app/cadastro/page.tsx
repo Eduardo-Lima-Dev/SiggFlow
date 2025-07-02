@@ -20,6 +20,7 @@ export default function CadastroPage() {
     email: "",
     password: "",
     curso: "",
+    anoIngresso: new Date().getFullYear().toString(),
     // semestre: ""
   });
   const [loading, setLoading] = useState(false);
@@ -143,6 +144,25 @@ export default function CadastroPage() {
                   <option key={curso.value} value={curso.value}>
                     {curso.label}
                   </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label htmlFor="anoIngresso" className="block text-sm font-medium text-gray-700">
+                Ano de Ingresso
+              </label>
+              <select
+                id="anoIngresso"
+                name="anoIngresso"
+                required
+                value={formData.anoIngresso}
+                onChange={handleChange}
+                className="mt-1 block w-full px-3 py-2 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+              >
+                <option value="">Selecione o ano</option>
+                {Array.from({ length: new Date().getFullYear() - 2009 }, (_, i) => 2010 + i).map(ano => (
+                  <option key={ano} value={ano}>{ano}</option>
                 ))}
               </select>
             </div>

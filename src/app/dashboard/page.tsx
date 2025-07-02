@@ -20,7 +20,7 @@ const cursoLabels: Record<string, string> = {
 
 type DisciplinasPorSemestre = Record<string, { nome: string }[]>;
 type DisciplinasAPIResponse = {
-  curriculo: string;
+  curriculo: { nome: string; ano: number };
   completas: DisciplinasPorSemestre;
   pendentes: DisciplinasPorSemestre;
 };
@@ -211,7 +211,11 @@ export default function DashboardPage() {
                 value: session?.user?.curso
                   ? cursoLabels[session.user.curso as keyof typeof cursoLabels]
                   : 'N/A'
-              }
+              },
+              {
+                label: 'Currículo',
+                value: disciplinas?.curriculo ? `${disciplinas.curriculo.nome} (${disciplinas.curriculo.ano})` : 'N/A',
+              },
             ].map(({ label, value }) => (
               <div key={label} className="flex flex-col">
                 <span className="text-sm text-slate-400">{label}</span>

@@ -198,7 +198,8 @@ function RegisterForm({ onSwitch }: { onSwitch: () => void }) {
     name: "",
     email: "",
     password: "",
-    curso: ""
+    curso: "",
+    anoIngresso: new Date().getFullYear().toString(),
   });
   const [cursos, setCursos] = useState<{ id: string, nome: string, codigo: string }[]>([]);
   const [loading, setLoading] = useState(false);
@@ -331,6 +332,29 @@ function RegisterForm({ onSwitch }: { onSwitch: () => void }) {
               <option value="" disabled>Selecione o curso</option>
               {cursos.map((curso) => (
                 <option key={curso.id} value={curso.codigo}>{curso.nome}</option>
+              ))}
+            </select>
+          </div>
+        </div>
+        <div>
+          <label htmlFor="anoIngresso" className="block text-sm font-medium text-gray-300 mb-1">
+            Ano de Ingresso
+          </label>
+          <div className="relative">
+            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none">
+              <svg width="18" height="18" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+            </span>
+            <select
+              id="anoIngresso"
+              name="anoIngresso"
+              required
+              value={formData.anoIngresso}
+              onChange={handleChange}
+              className="pl-10 pr-3 py-2 w-full rounded-md bg-[#181f20] border border-[#2c3536] text-white focus:outline-none focus:ring-2 focus:ring-[#219EBC] focus:border-[#219EBC] sm:text-sm"
+            >
+              <option value="" disabled>Selecione o ano</option>
+              {Array.from({ length: new Date().getFullYear() - 1999 }, (_, i) => 2000 + i).map(ano => (
+                <option key={ano} value={ano}>{ano}</option>
               ))}
             </select>
           </div>

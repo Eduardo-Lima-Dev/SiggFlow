@@ -8,6 +8,7 @@ declare module "next-auth" {
       email?: string | null;
       image?: string | null;
       curso?: string;
+      anoIngresso?: number;
       // semestre?: number;
     };
   }
@@ -17,6 +18,7 @@ declare module "next-auth" {
     name: string;
     email: string;
     curso: string;
+    anoIngresso: number;
     // semestre: number;
   }
 }

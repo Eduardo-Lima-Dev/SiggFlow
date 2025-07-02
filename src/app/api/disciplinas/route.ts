@@ -21,10 +21,16 @@ export async function GET(req: Request) {
 
   // Busca o curso do usuário
   const userCurso = session.user.curso;
+  const anoIngresso = session.user.anoIngresso;
   console.log('Curso do usuário:', userCurso);
+  console.log('Ano de ingresso:', anoIngresso);
   
   if (!userCurso) {
     return NextResponse.json({ error: 'Curso não encontrado' }, { status: 400 });
+  }
+
+  if (typeof anoIngresso !== 'number' || isNaN(anoIngresso)) {
+    return NextResponse.json({ error: 'Ano de ingresso não informado' }, { status: 400 });
   }
 
   // Busca o código do curso usando o mapeamento
@@ -46,8 +52,22 @@ export async function GET(req: Request) {
     return NextResponse.json({ error: 'Curso não encontrado' }, { status: 404 });
   }
 
-  // Pega o currículo mais recente
-  const curriculo = curso.curriculos.sort((a, b) => b.ano - a.ano)[0];
+  // Seleciona o currículo correto baseado no ano de ingresso
+  // Ordena currículos por ano ascendente
+  const curriculosOrdenados = curso.curriculos.sort((a, b) => a.ano - b.ano);
+  let curriculo = null;
+  if (curriculosOrdenados.length === 1) {
+    curriculo = curriculosOrdenados[0];
+  } else {
+    for (let i = 0; i < curriculosOrdenados.length; i++) {
+      const atual = curriculosOrdenados[i];
+      const proximo = curriculosOrdenados[i + 1];
+      if (anoIngresso >= atual.ano && (!proximo || anoIngresso < proximo.ano)) {
+        curriculo = atual;
+        break;
+      }
+    }
+  }
   if (!curriculo) {
     return NextResponse.json({ error: 'Currículo não encontrado' }, { status: 404 });
   }
@@ -88,7 +108,10 @@ export async function GET(req: Request) {
   }
 
   return NextResponse.json({
-    curriculo: curriculo.nome,
+    curriculo: {
+      nome: curriculo.nome,
+      ano: curriculo.ano
+    },
     completas,
     pendentes
   });

@@ -30,6 +30,7 @@ export const authOptions: NextAuthOptions = {
               curso: true,
               password: true,
               completedOnboarding: true,
+              anoIngresso: true,
             }
           });
 
@@ -58,6 +59,7 @@ export const authOptions: NextAuthOptions = {
             email: user.email,
             name: user.name,
             curso: user.curso,
+            anoIngresso: user.anoIngresso,
             completedOnboarding: user.completedOnboarding,
             // semestre: user.semestre,
           };
@@ -75,6 +77,7 @@ export const authOptions: NextAuthOptions = {
     async jwt({ token, user }) {
       if (user) {
         token.curso = user.curso;
+        token.anoIngresso = (user as any).anoIngresso;
         token.completedOnboarding = (user as any).completedOnboarding;
         // token.semestre = user.semestre;
       }
@@ -84,6 +87,7 @@ export const authOptions: NextAuthOptions = {
       if (token) {
         session.user.id = token.sub || (user && user.id) || session.user.id;
         session.user.curso = token.curso as any;
+        session.user.anoIngresso = token.anoIngresso as number;
         (session.user as any).completedOnboarding = token.completedOnboarding as boolean;
         // session.user.semestre = token.semestre as number;
       }
