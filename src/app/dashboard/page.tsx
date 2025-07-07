@@ -5,7 +5,7 @@ import { useSession, signOut } from 'next-auth/react';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import { useRouter } from 'next/navigation';
 import { Switch, Dialog } from '@headlessui/react';
-import { PlusIcon, FunnelIcon } from '@heroicons/react/24/outline';
+import { PlusIcon, FunnelIcon, ChevronRightIcon, ChevronLeftIcon } from '@heroicons/react/24/outline';
 import SemesterColumn from '@/components/SemesterColumn';
 import DisciplinaModal from '@/components/DisciplinaModal';
 
@@ -70,6 +70,7 @@ export default function DashboardPage() {
   });
   const [optativaSelecionada, setOptativaSelecionada] = useState<any>(null);
   const [optativaParaAdicionar, setOptativaParaAdicionar] = useState<any>(null);
+  const [sidebarAberta, setSidebarAberta] = useState(true);
 
   useEffect(() => {
     if (status !== 'authenticated') return;
@@ -235,67 +236,97 @@ export default function DashboardPage() {
     <ProtectedRoute>
       <div className="min-h-screen bg-slate-900 text-gray-100 flex">
         {/* SIDEBAR */}
-        <aside className="w-64 bg-slate-800/80 backdrop-blur-md rounded-xl m-4 p-6 flex flex-col space-y-6 sticky top-4 h-[calc(100vh-2rem)] overflow-auto">
-          <div className="flex items-center justify-between">
-            <h2 className="text-xl font-semibold tracking-wide">Filtros</h2>
-            <FunnelIcon className="h-5 w-5 text-indigo-400" />
-          </div>
-          <div className="space-y-4">
-            {[
-              { key: 'semestre', label: 'Por Semestre', value: filtros.semestre },
-              { key: 'completos', label: 'Completas', value: filtros.completos },
-              { key: 'pendentes', label: 'Pendentes', value: filtros.pendentes },
-              { key: 'optativas', label: 'Optativas', value: filtros.optativas }
-            ].map(({ key, label, value }) => (
-              <Switch.Group key={key} as="div" className="flex items-center justify-between">
-                <span className="font-medium">{label}</span>
-                <Switch
-                  checked={value}
-                  onChange={() => setFiltros(f => ({ ...f, [key]: !f[key as keyof typeof filtros] }))}
-                  className={`${value ? 'bg-indigo-500' : 'bg-slate-600'} relative inline-flex items-center h-6 rounded-full w-11 transition`}
+        <aside className={`${sidebarAberta ? 'w-64' : 'w-12'} bg-slate-800/80 backdrop-blur-md rounded-xl m-4 flex flex-col sticky top-4 h-[calc(100vh-2rem)] transition-all duration-300`}>
+          {sidebarAberta ? (
+            <>
+              <div className="p-6 flex-1 overflow-auto">
+                <div className="flex items-center justify-between mb-6">
+                  <h2 className="text-xl font-semibold tracking-wide">Filtros</h2>
+                  <FunnelIcon className="h-5 w-5 text-indigo-400" />
+                </div>
+                <div className="space-y-4">
+                  {[
+                    { key: 'semestre', label: 'Por Semestre', value: filtros.semestre },
+                    { key: 'completos', label: 'Completas', value: filtros.completos },
+                    { key: 'pendentes', label: 'Pendentes', value: filtros.pendentes },
+                    { key: 'optativas', label: 'Optativas', value: filtros.optativas }
+                  ].map(({ key, label, value }) => (
+                    <Switch.Group key={key} as="div" className="flex items-center justify-between">
+                      <span className="font-medium">{label}</span>
+                      <Switch
+                        checked={value}
+                        onChange={() => setFiltros(f => ({ ...f, [key]: !f[key as keyof typeof filtros] }))}
+                        className={`${value ? 'bg-indigo-500' : 'bg-slate-600'} relative inline-flex items-center h-6 rounded-full w-11 transition`}
+                      >
+                        <span
+                          className={`${value ? 'translate-x-6' : 'translate-x-1'} inline-block w-4 h-4 transform bg-white rounded-full transition`}
+                        />
+                      </Switch>
+                    </Switch.Group>
+                  ))}
+                </div>
+                {/* Legenda de status */}
+                <div className="mt-6 space-y-2">
+                  <div className="text-xs text-slate-400 font-semibold mb-1">Legenda:</div>
+                  <div className="flex flex-col gap-2">
+                    <div className="flex items-center gap-2">
+                      <span className="inline-block w-5 h-5 rounded bg-green-700 border border-green-800"></span>
+                      <span className="text-sm text-slate-200">Concluída</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="inline-block w-5 h-5 rounded" style={{ background: '#f4b400' }}></span>
+                      <span className="text-sm text-slate-200">Em andamento</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="inline-block w-5 h-5 rounded bg-yellow-700 border border-yellow-800"></span>
+                      <span className="text-sm text-slate-200">Pendente</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="inline-block w-5 h-5 rounded bg-red-700 border border-red-800"></span>
+                      <span className="text-sm text-slate-200">Reprovada</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div className="p-4 border-t border-slate-700">
+                <div className="flex gap-2">
+                  <button
+                    className="flex-1 flex items-center justify-center gap-2 py-2 px-4 bg-indigo-500 hover:bg-indigo-600 rounded-lg font-semibold transition-shadow shadow-md hover:shadow-lg"
+                    onClick={async () => {
+                      await carregarOptativas();
+                      setModalOptativaOpen(true);
+                      setModoAdicionar(false);
+                      setOptativaSelecionada(null);
+                      setOptativaParaAdicionar(null);
+                    }}
+                  >
+                    <PlusIcon className="h-5 w-5" />
+                    Adicionar Optativas
+                  </button>
+                  <button
+                    onClick={() => setSidebarAberta(false)}
+                    className="p-3 rounded-lg hover:bg-slate-700 transition-colors flex items-center justify-center"
+                    title="Fechar filtros"
+                  >
+                    <ChevronLeftIcon className="h-5 w-5 text-indigo-400" />
+                  </button>
+                </div>
+              </div>
+            </>
+          ) : (
+            <div className="flex flex-col h-full">
+              <div className="flex-1"></div>
+              <div className="p-1">
+                <button
+                  onClick={() => setSidebarAberta(!sidebarAberta)}
+                  className="w-full p-3 rounded-lg hover:bg-slate-700 transition-colors flex items-center justify-center"
+                  title="Abrir filtros"
                 >
-                  <span
-                    className={`${value ? 'translate-x-6' : 'translate-x-1'} inline-block w-4 h-4 transform bg-white rounded-full transition`}
-                  />
-                </Switch>
-              </Switch.Group>
-            ))}
-          </div>
-          {/* Legenda de status */}
-          <div className="mt-6 space-y-2">
-            <div className="text-xs text-slate-400 font-semibold mb-1">Legenda:</div>
-            <div className="flex flex-col gap-2">
-              <div className="flex items-center gap-2">
-                <span className="inline-block w-5 h-5 rounded bg-green-700 border border-green-800"></span>
-                <span className="text-sm text-slate-200">Concluída</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="inline-block w-5 h-5 rounded" style={{ background: '#f4b400' }}></span>
-                <span className="text-sm text-slate-200">Em andamento</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="inline-block w-5 h-5 rounded bg-yellow-700 border border-yellow-800"></span>
-                <span className="text-sm text-slate-200">Pendente</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="inline-block w-5 h-5 rounded bg-red-700 border border-red-800"></span>
-                <span className="text-sm text-slate-200">Reprovada</span>
+                  <ChevronRightIcon className="h-5 w-5 text-indigo-400" />
+                </button>
               </div>
             </div>
-          </div>
-          <button
-            className="mt-auto flex items-center justify-center gap-2 py-2 px-4 bg-indigo-500 hover:bg-indigo-600 rounded-lg font-semibold transition-shadow shadow-md hover:shadow-lg"
-            onClick={async () => {
-              await carregarOptativas();
-              setModalOptativaOpen(true);
-              setModoAdicionar(false);
-              setOptativaSelecionada(null);
-              setOptativaParaAdicionar(null);
-            }}
-          >
-            <PlusIcon className="h-5 w-5" />
-            Adicionar Optativas
-          </button>
+          )}
         </aside>
 
         {/* MAIN CONTENT */}
