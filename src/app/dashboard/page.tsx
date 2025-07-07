@@ -25,6 +25,21 @@ type DisciplinasAPIResponse = {
   pendentes: DisciplinasPorSemestre;
 };
 
+export interface Disciplina {
+  id: string;
+  nome: string;
+  status?: 'CONCLUIDA' | 'EM_ANDAMENTO' | 'PENDENTE' | 'REPROVADA';
+}
+
+const cursoMapping = {
+  ENGENHARIA_SOFTWARE: 'ES',
+  CIENCIA_COMPUTACAO: 'CC',
+  SISTEMAS_INFORMACAO: 'SI',
+  DESIGN_DIGITAL: 'DD',
+  ENGENHARIA_COMPUTACAO: 'EC',
+  REDES_COMPUTADORES: 'RC',
+};
+
 export default function DashboardPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
@@ -42,6 +57,14 @@ export default function DashboardPage() {
   const [modalPreRequisitos, setModalPreRequisitos] = useState<any[]>([]);
   const [modalDependentes, setModalDependentes] = useState<any[]>([]);
   const [saving, setSaving] = useState(false);
+  const [modalOptativaOpen, setModalOptativaOpen] = useState(false);
+  const [novaOptativa, setNovaOptativa] = useState({
+    nome: '',
+    codigo: '',
+    cargaHoraria: '',
+    status: 'PENDENTE',
+    semestre: '',
+  });
 
   useEffect(() => {
     if (status !== 'authenticated') return;
@@ -182,7 +205,32 @@ export default function DashboardPage() {
               </Switch.Group>
             ))}
           </div>
-          <button className="mt-auto flex items-center justify-center gap-2 py-2 px-4 bg-indigo-500 hover:bg-indigo-600 rounded-lg font-semibold transition-shadow shadow-md hover:shadow-lg">
+          {/* Legenda de status */}
+          <div className="mt-6 space-y-2">
+            <div className="text-xs text-slate-400 font-semibold mb-1">Legenda:</div>
+            <div className="flex flex-col gap-2">
+              <div className="flex items-center gap-2">
+                <span className="inline-block w-5 h-5 rounded bg-green-700 border border-green-800"></span>
+                <span className="text-sm text-slate-200">Concluída</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="inline-block w-5 h-5 rounded" style={{ background: '#f4b400' }}></span>
+                <span className="text-sm text-slate-200">Em andamento</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="inline-block w-5 h-5 rounded bg-yellow-700 border border-yellow-800"></span>
+                <span className="text-sm text-slate-200">Pendente</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="inline-block w-5 h-5 rounded bg-red-700 border border-red-800"></span>
+                <span className="text-sm text-slate-200">Reprovada</span>
+              </div>
+            </div>
+          </div>
+          <button
+            className="mt-auto flex items-center justify-center gap-2 py-2 px-4 bg-indigo-500 hover:bg-indigo-600 rounded-lg font-semibold transition-shadow shadow-md hover:shadow-lg"
+            onClick={() => setModalOptativaOpen(true)}
+          >
             <PlusIcon className="h-5 w-5" />
             Adicionar Optativas
           </button>
@@ -228,7 +276,7 @@ export default function DashboardPage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             {[
               { label: 'Matérias Completas', value: totalCompletas, color: 'green' },
-              { label: 'Matérias Pendentes', value: totalPendentes, color: 'yellow' }
+              { label: 'Matérias Pendentes', value: totalPendentes, color: 'yellow' },
             ].map(card => (
               <div
                 key={card.label}
@@ -240,16 +288,20 @@ export default function DashboardPage() {
             ))}
           </div>
 
-          {/* GRID DE SEMESTRES COM SCROLL HORIZONTAL */}
-          <div className="overflow-x-auto py-4">
-            <div className="grid grid-flow-col auto-cols-fr gap-20 px-4">
+          {/* GRID DE SEMESTRES EM LISTA VERTICAL */}
+          <div className="py-4">
+            <div className="flex flex-col gap-8">
               {semestres.map(sem => (
                 <SemesterColumn
                   key={sem}
                   numero={sem}
+                  obrigatorias={
+                    (disciplinas!.completas[sem]?.length || 0) +
+                    (disciplinas!.pendentes[sem]?.length || 0)
+                  }
                   disciplinas={[
-                    ...(disciplinas!.completas[sem]?.map(d => ({ ...d, status: 'CONCLUIDA' as const })) || []),
-                    ...(disciplinas!.pendentes[sem]?.map(d => ({ ...d, status: 'PENDENTE' as const })) || [])
+                    ...(disciplinas!.completas[sem] || []),
+                    ...(disciplinas!.pendentes[sem] || [])
                   ]}
                   onDisciplinaClick={disc => {
                     const { preRequisitos, dependentes } = getPreRequisitosAndDependentes(disc);
@@ -273,6 +325,70 @@ export default function DashboardPage() {
             onSalvar={handleSalvarDisciplina}
             saving={saving}
           />
+
+          {/* Modal de Optativa (simples, inline) */}
+          {modalOptativaOpen && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60">
+              <div className="bg-slate-900 rounded-xl p-8 w-full max-w-md relative">
+                <button className="absolute top-2 right-4 text-2xl text-slate-400 hover:text-white" onClick={() => setModalOptativaOpen(false)}>×</button>
+                <h2 className="text-xl font-bold text-white mb-4">Adicionar Matéria Optativa</h2>
+                <div className="space-y-3">
+                  <input className="w-full rounded p-2 bg-slate-800 text-white" placeholder="Nome" value={novaOptativa.nome} onChange={e => setNovaOptativa(o => ({ ...o, nome: e.target.value }))} />
+                  <input className="w-full rounded p-2 bg-slate-800 text-white" placeholder="Código" value={novaOptativa.codigo} onChange={e => setNovaOptativa(o => ({ ...o, codigo: e.target.value }))} />
+                  <input className="w-full rounded p-2 bg-slate-800 text-white" placeholder="Horas" value={novaOptativa.cargaHoraria} onChange={e => setNovaOptativa(o => ({ ...o, cargaHoraria: e.target.value }))} />
+                  <select className="w-full rounded p-2 bg-slate-800 text-white" value={novaOptativa.status} onChange={e => setNovaOptativa(o => ({ ...o, status: e.target.value }))}>
+                    <option value="CONCLUIDA">Concluída</option>
+                    <option value="EM_ANDAMENTO">Em andamento</option>
+                    <option value="PENDENTE">Pendente</option>
+                    <option value="REPROVADA">Reprovada</option>
+                  </select>
+                  <select className="w-full rounded p-2 bg-slate-800 text-white" value={novaOptativa.semestre} onChange={e => setNovaOptativa(o => ({ ...o, semestre: e.target.value }))}>
+                    <option value="">Selecione o semestre</option>
+                    {semestres.map(sem => (
+                      <option key={sem} value={sem}>{sem}º Semestre</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="flex justify-end gap-4 mt-6">
+                  <button className="bg-slate-600 hover:bg-slate-700 text-white px-6 py-2 rounded font-semibold" onClick={() => setModalOptativaOpen(false)}>Cancelar</button>
+                  <button
+                    className="bg-teal-600 hover:bg-teal-700 text-white px-6 py-2 rounded font-semibold"
+                    onClick={async () => {
+                      if (!novaOptativa.nome || !novaOptativa.codigo || !novaOptativa.cargaHoraria || !novaOptativa.semestre) return;
+                      await fetch('/api/disciplinas/optativa', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                          nome: novaOptativa.nome,
+                          codigo: novaOptativa.codigo,
+                          cargaHoraria: novaOptativa.cargaHoraria,
+                          status: novaOptativa.status,
+                          semestre: novaOptativa.semestre,
+                          preRequisitos: '',
+                          curso: session?.user?.curso ? cursoMapping[session.user.curso as keyof typeof cursoMapping] : '',
+                        }),
+                      });
+                      setModalOptativaOpen(false);
+                      setNovaOptativa({ nome: '', codigo: '', cargaHoraria: '', status: 'PENDENTE', semestre: '' });
+                      setLoading(true);
+                      fetch('/api/disciplinas')
+                        .then(res => res.json())
+                        .then((data: DisciplinasAPIResponse & { error?: string }) => {
+                          if (data.error) {
+                            setErro(data.error);
+                            setDisciplinas(null);
+                          } else {
+                            setDisciplinas(data);
+                          }
+                        })
+                        .catch(() => setErro('Erro ao buscar disciplinas'))
+                        .finally(() => setLoading(false));
+                    }}
+                  >Salvar</button>
+                </div>
+              </div>
+            </div>
+          )}
         </main>
       </div>
     </ProtectedRoute>

@@ -4,17 +4,20 @@ import DisciplinaBadge, { DisciplinaBadgeProps } from './DisciplinaBadge';
 export interface Disciplina {
   nome: string;
   status?: 'CONCLUIDA' | 'EM_ANDAMENTO' | 'PENDENTE' | 'REPROVADA';
+  codigo?: string;
+  cargaHoraria?: number;
 }
 
 export interface SemesterColumnProps {
   numero: string;
+  obrigatorias: number;
   disciplinas: Disciplina[];
   onDisciplinaClick?: (disciplina: Disciplina) => void;
 }
 
 const statusOrder = ['CONCLUIDA', 'EM_ANDAMENTO', 'PENDENTE', 'REPROVADA'];
 
-const SemesterColumn: React.FC<SemesterColumnProps> = ({ numero, disciplinas, onDisciplinaClick }) => {
+const SemesterColumn: React.FC<SemesterColumnProps> = ({ numero, obrigatorias, disciplinas, onDisciplinaClick }) => {
   // Agrupa as disciplinas por status
   const grouped: Record<string, Disciplina[]> = {};
   for (const d of disciplinas) {
@@ -24,23 +27,30 @@ const SemesterColumn: React.FC<SemesterColumnProps> = ({ numero, disciplinas, on
   }
 
   return (
-    <div className="flex flex-col bg-slate-800 rounded-2xl shadow-md min-w-[200px] mx-2">
-      {/* Cabeçalho do semestre */}
-      <div className="bg-indigo-600 text-white text-center py-2 rounded-t-2xl font-semibold">
-        {numero}º Semestre
+    <div className="relative flex flex-row min-w-[260px] mx-2 items-stretch">
+      {/* Card do semestre */}
+      <div className="relative z-10 flex flex-col justify-center px-6 py-5 min-w-[220px] bg-white rounded-xl shadow-md overflow-hidden mr-4">
+        {/* Faixa inclinada no topo direito */}
+        <div className="absolute right-0 top-0 w-[60%] h-8 bg-slate-100" style={{transform: 'skew(-15deg)', zIndex: 1}} />
+        <div className="relative z-10 px-6 pt-5 pb-2">
+          <div className="text-2xl font-extrabold text-slate-700">{numero}º SEMESTRE</div>
+          <div className="text-sm font-semibold text-slate-500 mt-1">
+            ({obrigatorias.toString().padStart(2, '0')} OBRIGATÓRIAS)
+          </div>
+        </div>
       </div>
       {/* Lista de disciplinas */}
-      <div className="p-4 flex-1 flex flex-col space-y-2">
-        {statusOrder.map(status =>
-          (grouped[status] || []).map(d => (
-            <DisciplinaBadge
-              key={d.nome}
-              nome={d.nome}
-              status={status as DisciplinaBadgeProps['status']}
-              onClick={() => onDisciplinaClick?.(d)}
-            />
-          ))
-        )}
+      <div className="p-4 flex flex-row flex-wrap gap-4 justify-start items-center flex-1">
+        {disciplinas.map(d => (
+          <DisciplinaBadge
+            key={d.nome}
+            nome={d.nome}
+            status={d.status as DisciplinaBadgeProps['status']}
+            codigo={(d as any).codigo || ''}
+            cargaHoraria={(d as any).cargaHoraria || 0}
+            onClick={() => onDisciplinaClick?.(d)}
+          />
+        ))}
       </div>
     </div>
   );

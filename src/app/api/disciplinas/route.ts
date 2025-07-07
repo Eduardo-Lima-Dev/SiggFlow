@@ -97,15 +97,22 @@ export async function GET(req: Request) {
   const pendentes: Record<number, any[]> = {};
 
   for (const disc of disciplinas) {
-    const status = progressoMap.get(disc.id);
-    if (status === 'CONCLUIDA') {
-      if (!completas[disc.semestre]) completas[disc.semestre] = [];
-      completas[disc.semestre].push(disc);
-    } else {
-      if (!pendentes[disc.semestre]) pendentes[disc.semestre] = [];
-      pendentes[disc.semestre].push(disc);
+    const status = progressoMap.get(disc.id) || 'PENDENTE';
+    const discWithStatus = { ...disc, status };
+    // Mostra todas as obrigatórias e as optativas do usuário
+    if (disc.obrigatoria || progressoMap.has(disc.id)) {
+      if (status === 'CONCLUIDA') {
+        if (!completas[disc.semestre]) completas[disc.semestre] = [];
+        completas[disc.semestre].push(discWithStatus);
+      } else {
+        if (!pendentes[disc.semestre]) pendentes[disc.semestre] = [];
+        pendentes[disc.semestre].push(discWithStatus);
+      }
     }
   }
+
+  console.log('Dashboard disciplinas completas:', completas);
+  console.log('Dashboard disciplinas pendentes:', pendentes);
 
   return NextResponse.json({
     curriculo: {
