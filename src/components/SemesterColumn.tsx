@@ -6,6 +6,7 @@ export interface Disciplina {
   status?: 'CONCLUIDA' | 'EM_ANDAMENTO' | 'PENDENTE' | 'REPROVADA';
   codigo?: string;
   cargaHoraria?: number;
+  obrigatoria?: boolean;
 }
 
 export interface SemesterColumnProps {
@@ -18,13 +19,9 @@ export interface SemesterColumnProps {
 const statusOrder = ['CONCLUIDA', 'EM_ANDAMENTO', 'PENDENTE', 'REPROVADA'];
 
 const SemesterColumn: React.FC<SemesterColumnProps> = ({ numero, obrigatorias, disciplinas, onDisciplinaClick }) => {
-  // Agrupa as disciplinas por status
-  const grouped: Record<string, Disciplina[]> = {};
-  for (const d of disciplinas) {
-    const st = d.status || 'PENDENTE';
-    if (!grouped[st]) grouped[st] = [];
-    grouped[st].push(d);
-  }
+  // Conta obrigatórias e optativas
+  const obrigatoriasCount = disciplinas.filter(d => d.obrigatoria !== false).length;
+  const optativasCount = disciplinas.filter(d => d.obrigatoria === false).length;
 
   return (
     <div className="relative flex flex-row min-w-[260px] mx-2 items-stretch">
@@ -35,7 +32,7 @@ const SemesterColumn: React.FC<SemesterColumnProps> = ({ numero, obrigatorias, d
         <div className="relative z-10 px-6 pt-5 pb-2">
           <div className="text-2xl font-extrabold text-slate-700">{numero}º SEMESTRE</div>
           <div className="text-sm font-semibold text-slate-500 mt-1">
-            ({obrigatorias.toString().padStart(2, '0')} OBRIGATÓRIAS)
+            ({obrigatoriasCount.toString().padStart(2, '0')} OBRIGATÓRIAS, {optativasCount.toString().padStart(2, '0')} OPTATIVAS)
           </div>
         </div>
       </div>
@@ -48,6 +45,7 @@ const SemesterColumn: React.FC<SemesterColumnProps> = ({ numero, obrigatorias, d
             status={d.status as DisciplinaBadgeProps['status']}
             codigo={(d as any).codigo || ''}
             cargaHoraria={(d as any).cargaHoraria || 0}
+            obrigatoria={d.obrigatoria}
             onClick={() => onDisciplinaClick?.(d)}
           />
         ))}

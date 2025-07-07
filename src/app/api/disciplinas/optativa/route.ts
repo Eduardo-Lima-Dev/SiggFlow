@@ -23,11 +23,35 @@ export async function POST(req: Request) {
   try {
     // Buscar o curso pelo campo recebido do body
     const { curso } = data;
-    const cursoObj = await prisma.curso.findFirst({ where: { codigo: curso } });
+    const cursoObj = await prisma.curso.findFirst({ 
+      where: { codigo: curso },
+      include: { curriculos: true }
+    });
     if (!cursoObj) {
       return NextResponse.json({ error: 'Curso não encontrado' }, { status: 400 });
     }
     console.log('CursoId usado para optativa:', cursoObj.id);
+    
+    // Determinar o currículo correto baseado no ano de ingresso do usuário
+    const anoIngresso = session.user.anoIngresso || 2024;
+    const curriculosOrdenados = cursoObj.curriculos.sort((a, b) => a.ano - b.ano);
+    let curriculo = null;
+    if (curriculosOrdenados.length === 1) {
+      curriculo = curriculosOrdenados[0];
+    } else {
+      for (let i = 0; i < curriculosOrdenados.length; i++) {
+        const atual = curriculosOrdenados[i];
+        const proximo = curriculosOrdenados[i + 1];
+        if (anoIngresso >= atual.ano && (!proximo || anoIngresso < proximo.ano)) {
+          curriculo = atual;
+          break;
+        }
+      }
+    }
+    if (!curriculo) {
+      return NextResponse.json({ error: 'Currículo não encontrado' }, { status: 404 });
+    }
+    
     // Cria disciplina optativa se não existir
     let disciplina = await prisma.disciplina.findFirst({ where: { codigo } });
     if (!disciplina) {
@@ -40,6 +64,7 @@ export async function POST(req: Request) {
           obrigatoria: false,
           preRequisitos: '',
           cursoId: cursoObj.id,
+          curriculoId: curriculo.id,
         },
       });
       console.log('Disciplina optativa criada:', disciplina);

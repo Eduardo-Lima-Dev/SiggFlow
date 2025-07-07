@@ -296,11 +296,11 @@ async function main() {
   let cursoCC = await prisma.curso.findFirst({ where: { codigo: "CC" } });
   if (!cursoCC) {
     cursoCC = await prisma.curso.create({
-      data: {
+    data: {
         nome: "Ciência da Computação",
         codigo: "CC"
-      }
-    });
+    }
+  });
   }
 
   // Cria o currículo 2013.1 de Ciência da Computação
@@ -547,11 +547,11 @@ async function main() {
   let cursoEC = await prisma.curso.findFirst({ where: { codigo: "EC" } });
   if (!cursoEC) {
     cursoEC = await prisma.curso.create({
-      data: {
+    data: {
         nome: "Engenharia de Computação",
         codigo: "EC"
-      }
-    });
+    }
+  });
   }
 
   // Cria o currículo 2015.1 de Engenharia de Computação
@@ -784,11 +784,11 @@ async function main() {
   let cursoES = await prisma.curso.findFirst({ where: { codigo: "ES" } });
   if (!cursoES) {
     cursoES = await prisma.curso.create({
-      data: {
+    data: {
         nome: "Engenharia de Software",
         codigo: "ES"
-      }
-    });
+    }
+  });
   }
 
   // Cria o currículo 2010.1 de Engenharia de Software
@@ -1202,12 +1202,12 @@ async function main() {
       { nome: "REDES DE ALTA VELOCIDADE", codigo: "QXD0089", cargaHoraria: 64, semestre: 4, obrigatoria: true, cursoId: cursoRC.id, preRequisitos: "QXD0263", curriculoId: curriculoRC2024.id },
       { nome: "SERVIÇOS DE REDES DE COMPUTADORES", codigo: "QXD0092", cargaHoraria: 64, semestre: 4, obrigatoria: true, cursoId: cursoRC.id, preRequisitos: "QXD0265,QXD0267", curriculoId: curriculoRC2024.id },
       { nome: "GERÊNCIA DE REDES DE COMPUTADORES", codigo: "QXD0268", cargaHoraria: 64, semestre: 4, obrigatoria: true, cursoId: cursoRC.id, preRequisitos: "QXD0263", curriculoId: curriculoRC2024.id },
-      // 5º Semestre
+    // 5º Semestre
       { nome: "SISTEMAS DISTRIBUÍDOS", codigo: "QXD0043", cargaHoraria: 64, semestre: 5, obrigatoria: true, cursoId: cursoRC.id, preRequisitos: "QXD0007,QXD0013", curriculoId: curriculoRC2024.id },
       { nome: "ANÁLISE DE DESEMPENHO DE REDES DE COMPUTADORES", codigo: "QXD0093", cargaHoraria: 64, semestre: 5, obrigatoria: true, cursoId: cursoRC.id, preRequisitos: "QXD0264,QXD0012", curriculoId: curriculoRC2024.id },
       { nome: "VIRTUALIZAÇÃO E REDES DEFINIDAS POR SOFTWARE", codigo: "QXD0269", cargaHoraria: 64, semestre: 5, obrigatoria: true, cursoId: cursoRC.id, preRequisitos: "QXD0264", curriculoId: curriculoRC2024.id },
       { nome: "REDES MÓVEIS E SEM FIO", codigo: "QXD0270", cargaHoraria: 64, semestre: 5, obrigatoria: true, cursoId: cursoRC.id, preRequisitos: "QXD0264", curriculoId: curriculoRC2024.id },
-      // 6º Semestre
+    // 6º Semestre
       { nome: "ATIVIDADES DE EXTENSÃO", codigo: "EXT0044", cargaHoraria: 64, semestre: 6, obrigatoria: true, cursoId: cursoRC.id, preRequisitos: "", curriculoId: curriculoRC2024.id },
       { nome: "DESENVOLVIMENTO DE SOFTWARE PARA WEB", codigo: "QXD0253", cargaHoraria: 64, semestre: 6, obrigatoria: true, cursoId: cursoRC.id, preRequisitos: "QXD0007", curriculoId: curriculoRC2024.id },
       { nome: "GERÊNCIA DE PROJETOS", codigo: "QXD0254", cargaHoraria: 64, semestre: 6, obrigatoria: true, cursoId: cursoRC.id, preRequisitos: "", curriculoId: curriculoRC2024.id },
@@ -1374,46 +1374,46 @@ async function main() {
   
     // Disciplinas obrigatórias do currículo SI 2019.1
     const obrigatoriasSI2019 = [
-      // 1º Semestre
+    // 1º Semestre
       { nome: "FUNDAMENTOS DE PROGRAMAÇÃO", codigo: "QXD0001", cargaHoraria: 96, semestre: 1, obrigatoria: true, cursoId: cursoSI.id, preRequisitos: "", curriculoId: curriculoSI2019.id },
       { nome: "MATEMÁTICA BÁSICA", codigo: "QXD0056", cargaHoraria: 64, semestre: 1, obrigatoria: true, cursoId: cursoSI.id, preRequisitos: "", curriculoId: curriculoSI2019.id },
       { nome: "PRÉ-CÁLCULO", codigo: "QXD0109", cargaHoraria: 32, semestre: 1, obrigatoria: true, cursoId: cursoSI.id, preRequisitos: "", curriculoId: curriculoSI2019.id },
       { nome: "INTRODUÇÃO A SISTEMAS DE INFORMAÇÃO", codigo: "QXD0226", cargaHoraria: 64, semestre: 1, obrigatoria: true, cursoId: cursoSI.id, preRequisitos: "", curriculoId: curriculoSI2019.id },
       { nome: "INTRODUÇÃO A ADMINISTRAÇÃO", codigo: "QXD0227", cargaHoraria: 64, semestre: 1, obrigatoria: true, cursoId: cursoSI.id, preRequisitos: "", curriculoId: curriculoSI2019.id },
-      // 2º Semestre
+    // 2º Semestre
       { nome: "ARQUITETURA DE COMPUTADORES", codigo: "QXD0005", cargaHoraria: 64, semestre: 2, obrigatoria: true, cursoId: cursoSI.id, preRequisitos: "", curriculoId: curriculoSI2019.id },
       { nome: "CÁLCULO DIFERENCIAL E INTEGRAL I", codigo: "QXD0006", cargaHoraria: 64, semestre: 2, obrigatoria: true, cursoId: cursoSI.id, preRequisitos: "QXD0109", curriculoId: curriculoSI2019.id },
       { nome: "PROGRAMAÇÃO ORIENTADA A OBJETOS", codigo: "QXD0007", cargaHoraria: 64, semestre: 2, obrigatoria: true, cursoId: cursoSI.id, preRequisitos: "QXD0001", curriculoId: curriculoSI2019.id },
       { nome: "MATEMÁTICA DISCRETA", codigo: "QXD0008", cargaHoraria: 64, semestre: 2, obrigatoria: true, cursoId: cursoSI.id, preRequisitos: "QXD0056", curriculoId: curriculoSI2019.id },
       { nome: "SISTEMAS DE INFORMAÇÃO", codigo: "QXD0228", cargaHoraria: 64, semestre: 2, obrigatoria: true, cursoId: cursoSI.id, preRequisitos: "QXD0226,QXD0227", curriculoId: curriculoSI2019.id },
-      // 3º Semestre
+    // 3º Semestre
       { nome: "ESTRUTURA DE DADOS", codigo: "QXD0010", cargaHoraria: 64, semestre: 3, obrigatoria: true, cursoId: cursoSI.id, preRequisitos: "QXD0001", curriculoId: curriculoSI2019.id },
       { nome: "FUNDAMENTOS DE BANCO DE DADOS", codigo: "QXD0011", cargaHoraria: 64, semestre: 3, obrigatoria: true, cursoId: cursoSI.id, preRequisitos: "", curriculoId: curriculoSI2019.id },
       { nome: "SISTEMAS OPERACIONAIS", codigo: "QXD0013", cargaHoraria: 64, semestre: 3, obrigatoria: true, cursoId: cursoSI.id, preRequisitos: "QXD0005", curriculoId: curriculoSI2019.id },
       { nome: "ANÁLISE E PROJETO DE SISTEMAS", codigo: "QXD0014", cargaHoraria: 64, semestre: 3, obrigatoria: true, cursoId: cursoSI.id, preRequisitos: "QXD0007", curriculoId: curriculoSI2019.id },
       { nome: "GESTÃO DE PROCESSOS DE NEGÓCIOS", codigo: "QXD0154", cargaHoraria: 64, semestre: 3, obrigatoria: true, cursoId: cursoSI.id, preRequisitos: "QXD0226,QXD0227", curriculoId: curriculoSI2019.id },
-      // 4º Semestre
+    // 4º Semestre
       { nome: "PROBABILIDADE E ESTATÍSTICA", codigo: "QXD0012", cargaHoraria: 64, semestre: 4, obrigatoria: true, cursoId: cursoSI.id, preRequisitos: "QXD0056", curriculoId: curriculoSI2019.id },
       { nome: "REDES DE COMPUTADORES", codigo: "QXD0021", cargaHoraria: 64, semestre: 4, obrigatoria: true, cursoId: cursoSI.id, preRequisitos: "", curriculoId: curriculoSI2019.id },
       { nome: "REQUISITOS DE SOFTWARE", codigo: "QXD0061", cargaHoraria: 64, semestre: 4, obrigatoria: true, cursoId: cursoSI.id, preRequisitos: "QXD0014", curriculoId: curriculoSI2019.id },
       { nome: "DESENVOLVIMENTO DE SOFTWARE PARA PERSISTENCIA", codigo: "QXD0099", cargaHoraria: 64, semestre: 4, obrigatoria: true, cursoId: cursoSI.id, preRequisitos: "QXD0011", curriculoId: curriculoSI2019.id },
       { nome: "ÉTICA, DIREITO E LEGISLAÇÃO", codigo: "QXD0103", cargaHoraria: 32, semestre: 4, obrigatoria: true, cursoId: cursoSI.id, preRequisitos: "", curriculoId: curriculoSI2019.id },
       { nome: "GESTÃO DA INFORMAÇÃO E DO CONHECIMENTO", codigo: "QXD0229", cargaHoraria: 64, semestre: 4, obrigatoria: true, cursoId: cursoSI.id, preRequisitos: "QXD0228", curriculoId: curriculoSI2019.id },
-      // 5º Semestre
+    // 5º Semestre
       { nome: "LÓGICA PARA COMPUTAÇÃO", codigo: "QXD0017", cargaHoraria: 64, semestre: 5, obrigatoria: true, cursoId: cursoSI.id, preRequisitos: "QXD0008", curriculoId: curriculoSI2019.id },
       { nome: "ENGENHARIA DE SOFTWARE", codigo: "QXD0019", cargaHoraria: 64, semestre: 5, obrigatoria: true, cursoId: cursoSI.id, preRequisitos: "QXD0014", curriculoId: curriculoSI2019.id },
       { nome: "DESENVOLVIMENTO DE SOFTWARE PARA WEB", codigo: "QXD0020", cargaHoraria: 64, semestre: 5, obrigatoria: true, cursoId: cursoSI.id, preRequisitos: "QXD0007", curriculoId: curriculoSI2019.id },
       { nome: "AUDITORIA E SEGURANÇA DE SISTEMAS DE INFORMAÇÃO", codigo: "QXD0022", cargaHoraria: 64, semestre: 5, obrigatoria: true, cursoId: cursoSI.id, preRequisitos: "", curriculoId: curriculoSI2019.id },
       { nome: "GESTÃO DA TECNOLOGIA DA INFORMAÇÃO", codigo: "QXD0230", cargaHoraria: 64, semestre: 5, obrigatoria: true, cursoId: cursoSI.id, preRequisitos: "QXD0229", curriculoId: curriculoSI2019.id },
-      // 6º Semestre
+    // 6º Semestre
       { nome: "GERÊNCIA DE PROJETOS DE SOFTWARE", codigo: "QXD0023", cargaHoraria: 64, semestre: 6, obrigatoria: true, cursoId: cursoSI.id, preRequisitos: "QXD0014", curriculoId: curriculoSI2019.id },
       { nome: "EMPREENDEDORISMO", codigo: "QXD0029", cargaHoraria: 64, semestre: 6, obrigatoria: true, cursoId: cursoSI.id, preRequisitos: "", curriculoId: curriculoSI2019.id },
       { nome: "INTERAÇÃO HUMANO-COMPUTADOR", codigo: "QXD0221", cargaHoraria: 64, semestre: 6, obrigatoria: true, cursoId: cursoSI.id, preRequisitos: "", curriculoId: curriculoSI2019.id },
-      // 7º Semestre
+    // 7º Semestre
       { nome: "ESTÁGIO SUPERVISIONADO I", codigo: "QXD0104", cargaHoraria: 160, semestre: 7, obrigatoria: true, cursoId: cursoSI.id, preRequisitos: "", curriculoId: curriculoSI2019.id },
       { nome: "PROJETO DE PESQUISA CIENTÍFICA E TECNOLÓGICA", codigo: "QXD0110", cargaHoraria: 32, semestre: 7, obrigatoria: true, cursoId: cursoSI.id, preRequisitos: "", curriculoId: curriculoSI2019.id },
       { nome: "TRABALHO DE CONCLUSÃO DE CURSO I", codigo: "QXD0111", cargaHoraria: 32, semestre: 7, obrigatoria: true, cursoId: cursoSI.id, preRequisitos: "", curriculoId: curriculoSI2019.id },
-      // 8º Semestre
+    // 8º Semestre
       { nome: "ESTÁGIO SUPERVISIONADO II", codigo: "QXD0105", cargaHoraria: 160, semestre: 8, obrigatoria: true, cursoId: cursoSI.id, preRequisitos: "QXD0104", curriculoId: curriculoSI2019.id },
       { nome: "TRABALHO DE CONCLUSÃO DE CURSO II", codigo: "QXD0112", cargaHoraria: 96, semestre: 8, obrigatoria: true, cursoId: cursoSI.id, preRequisitos: "QXD0111", curriculoId: curriculoSI2019.id },
       { nome: "ATIVIDADES COMPLEMENTARES", codigo: "SIQXD0001", cargaHoraria: 192, semestre: 8, obrigatoria: true, cursoId: cursoSI.id, preRequisitos: "", curriculoId: curriculoSI2019.id },
@@ -1475,38 +1475,38 @@ async function main() {
 
     // Disciplinas obrigatórias do currículo SI 2023.1
     const obrigatoriasSI2023 = [
-      // 1º Semestre
+    // 1º Semestre
       { nome: "FUNDAMENTOS DE PROGRAMAÇÃO", codigo: "QXD0001", cargaHoraria: 96, semestre: 1, obrigatoria: true, cursoId: cursoSI.id, preRequisitos: "", curriculoId: curriculoSI2023.id },
       { nome: "MATEMÁTICA BÁSICA", codigo: "QXD0056", cargaHoraria: 64, semestre: 1, obrigatoria: true, cursoId: cursoSI.id, preRequisitos: "", curriculoId: curriculoSI2023.id },
       { nome: "PRÉ-CÁLCULO", codigo: "QXD0109", cargaHoraria: 32, semestre: 1, obrigatoria: true, cursoId: cursoSI.id, preRequisitos: "", curriculoId: curriculoSI2023.id },
       { nome: "INTRODUÇÃO A ADMINISTRAÇÃO", codigo: "QXD0227", cargaHoraria: 64, semestre: 1, obrigatoria: true, cursoId: cursoSI.id, preRequisitos: "", curriculoId: curriculoSI2023.id },
       { nome: "INTRODUÇÃO A SISTEMAS DE INFORMAÇÃO", codigo: "QXD0247", cargaHoraria: 64, semestre: 1, obrigatoria: true, cursoId: cursoSI.id, preRequisitos: "", curriculoId: curriculoSI2023.id },
-      // 2º Semestre
+    // 2º Semestre
       { nome: "ARQUITETURA DE COMPUTADORES", codigo: "QXD0005", cargaHoraria: 64, semestre: 2, obrigatoria: true, cursoId: cursoSI.id, preRequisitos: "", curriculoId: curriculoSI2023.id },
       { nome: "CÁLCULO DIFERENCIAL E INTEGRAL I", codigo: "QXD0006", cargaHoraria: 64, semestre: 2, obrigatoria: true, cursoId: cursoSI.id, preRequisitos: "QXD0109", curriculoId: curriculoSI2023.id },
       { nome: "PROGRAMAÇÃO ORIENTADA A OBJETOS", codigo: "QXD0007", cargaHoraria: 64, semestre: 2, obrigatoria: true, cursoId: cursoSI.id, preRequisitos: "QXD0001", curriculoId: curriculoSI2023.id },
       { nome: "MATEMÁTICA DISCRETA", codigo: "QXD0008", cargaHoraria: 64, semestre: 2, obrigatoria: true, cursoId: cursoSI.id, preRequisitos: "QXD0056", curriculoId: curriculoSI2023.id },
       { nome: "SISTEMAS DE INFORMAÇÃO", codigo: "QXD0228", cargaHoraria: 64, semestre: 2, obrigatoria: true, cursoId: cursoSI.id, preRequisitos: "QXD0247,QXD0227", curriculoId: curriculoSI2023.id },
-      // 3º Semestre
+    // 3º Semestre
       { nome: "ESTRUTURA DE DADOS", codigo: "QXD0010", cargaHoraria: 64, semestre: 3, obrigatoria: true, cursoId: cursoSI.id, preRequisitos: "QXD0001", curriculoId: curriculoSI2023.id },
       { nome: "FUNDAMENTOS DE BANCO DE DADOS", codigo: "QXD0011", cargaHoraria: 64, semestre: 3, obrigatoria: true, cursoId: cursoSI.id, preRequisitos: "", curriculoId: curriculoSI2023.id },
       { nome: "SISTEMAS OPERACIONAIS", codigo: "QXD0013", cargaHoraria: 64, semestre: 3, obrigatoria: true, cursoId: cursoSI.id, preRequisitos: "QXD0005", curriculoId: curriculoSI2023.id },
       { nome: "ANÁLISE E PROJETO DE SISTEMAS", codigo: "QXD0248", cargaHoraria: 64, semestre: 3, obrigatoria: true, cursoId: cursoSI.id, preRequisitos: "QXD0007", curriculoId: curriculoSI2023.id },
       { nome: "GESTÃO DE PROCESSOS DE NEGÓCIOS", codigo: "QXD0249", cargaHoraria: 64, semestre: 3, obrigatoria: true, cursoId: cursoSI.id, preRequisitos: "QXD0247,QXD0227", curriculoId: curriculoSI2023.id },
-      // 4º Semestre
+    // 4º Semestre
       { nome: "PROBABILIDADE E ESTATÍSTICA", codigo: "QXD0012", cargaHoraria: 64, semestre: 4, obrigatoria: true, cursoId: cursoSI.id, preRequisitos: "QXD0056", curriculoId: curriculoSI2023.id },
       { nome: "REDES DE COMPUTADORES", codigo: "QXD0021", cargaHoraria: 64, semestre: 4, obrigatoria: true, cursoId: cursoSI.id, preRequisitos: "", curriculoId: curriculoSI2023.id },
       { nome: "DESENVOLVIMENTO DE SOFTWARE PARA PERSISTENCIA", codigo: "QXD0099", cargaHoraria: 64, semestre: 4, obrigatoria: true, cursoId: cursoSI.id, preRequisitos: "QXD0011", curriculoId: curriculoSI2023.id },
       { nome: "GESTÃO DA INFORMAÇÃO E DO CONHECIMENTO", codigo: "QXD0229", cargaHoraria: 64, semestre: 4, obrigatoria: true, cursoId: cursoSI.id, preRequisitos: "QXD0228", curriculoId: curriculoSI2023.id },
       { nome: "ÉTICA, DIREITO E LEGISLAÇÃO", codigo: "QXD0250", cargaHoraria: 32, semestre: 4, obrigatoria: true, cursoId: cursoSI.id, preRequisitos: "", curriculoId: curriculoSI2023.id },
       { nome: "REQUISITOS DE SOFTWARE", codigo: "QXD0251", cargaHoraria: 64, semestre: 4, obrigatoria: true, cursoId: cursoSI.id, preRequisitos: "QXD0248", curriculoId: curriculoSI2023.id },
-      // 5º Semestre
+    // 5º Semestre
       { nome: "LÓGICA PARA COMPUTAÇÃO", codigo: "QXD0017", cargaHoraria: 64, semestre: 5, obrigatoria: true, cursoId: cursoSI.id, preRequisitos: "QXD0008", curriculoId: curriculoSI2023.id },
       { nome: "AUDITORIA E SEGURANÇA DE SISTEMAS DE INFORMAÇÃO", codigo: "QXD0022", cargaHoraria: 64, semestre: 5, obrigatoria: true, cursoId: cursoSI.id, preRequisitos: "", curriculoId: curriculoSI2023.id },
       { nome: "GESTÃO DA TECNOLOGIA DA INFORMAÇÃO", codigo: "QXD0230", cargaHoraria: 64, semestre: 5, obrigatoria: true, cursoId: cursoSI.id, preRequisitos: "QXD0229", curriculoId: curriculoSI2023.id },
       { nome: "ENGENHARIA DE SOFTWARE", codigo: "QXD0252", cargaHoraria: 64, semestre: 5, obrigatoria: true, cursoId: cursoSI.id, preRequisitos: "QXD0248", curriculoId: curriculoSI2023.id },
       { nome: "DESENVOLVIMENTO DE SOFTWARE PARA WEB", codigo: "QXD0253", cargaHoraria: 64, semestre: 5, obrigatoria: true, cursoId: cursoSI.id, preRequisitos: "QXD0007", curriculoId: curriculoSI2023.id },
-      // 6º Semestre
+    // 6º Semestre
       { nome: "GERÊNCIA DE PROJETOS", codigo: "QXD0254", cargaHoraria: 64, semestre: 6, obrigatoria: true, cursoId: cursoSI.id, preRequisitos: "QXD0248", curriculoId: curriculoSI2023.id },
       { nome: "EMPREENDEDORISMO", codigo: "QXD0255", cargaHoraria: 64, semestre: 6, obrigatoria: true, cursoId: cursoSI.id, preRequisitos: "", curriculoId: curriculoSI2023.id },
       { nome: "INTERAÇÃO HUMANO-COMPUTADOR", codigo: "QXD0256", cargaHoraria: 64, semestre: 6, obrigatoria: true, cursoId: cursoSI.id, preRequisitos: "", curriculoId: curriculoSI2023.id },

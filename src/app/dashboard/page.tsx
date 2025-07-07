@@ -58,6 +58,9 @@ export default function DashboardPage() {
   const [modalDependentes, setModalDependentes] = useState<any[]>([]);
   const [saving, setSaving] = useState(false);
   const [modalOptativaOpen, setModalOptativaOpen] = useState(false);
+  const [optativas, setOptativas] = useState<any[]>([]);
+  const [loadingOptativas, setLoadingOptativas] = useState(false);
+  const [modoAdicionar, setModoAdicionar] = useState(false);
   const [novaOptativa, setNovaOptativa] = useState({
     nome: '',
     codigo: '',
@@ -65,6 +68,8 @@ export default function DashboardPage() {
     status: 'PENDENTE',
     semestre: '',
   });
+  const [optativaSelecionada, setOptativaSelecionada] = useState<any>(null);
+  const [optativaParaAdicionar, setOptativaParaAdicionar] = useState<any>(null);
 
   useEffect(() => {
     if (status !== 'authenticated') return;
@@ -82,6 +87,24 @@ export default function DashboardPage() {
       .catch(() => setErro('Erro ao buscar disciplinas'))
       .finally(() => setLoading(false));
   }, [status]);
+
+  // Função para carregar optativas
+  const carregarOptativas = async () => {
+    setLoadingOptativas(true);
+    try {
+      const response = await fetch('/api/disciplinas/optativas');
+      const data = await response.json();
+      if (data.error) {
+        console.error('Erro ao carregar optativas:', data.error);
+      } else {
+        setOptativas(data.optativas);
+      }
+    } catch (error) {
+      console.error('Erro ao carregar optativas:', error);
+    } finally {
+      setLoadingOptativas(false);
+    }
+  };
 
   if (status === 'loading' || loading) {
     return (
@@ -110,8 +133,36 @@ export default function DashboardPage() {
     ])
   ).sort((a, b) => Number(a) - Number(b));
 
-  const totalCompletas = Object.values(disciplinas?.completas || {}).reduce((acc, arr) => acc + arr.length, 0);
-  const totalPendentes = Object.values(disciplinas?.pendentes || {}).reduce((acc, arr) => acc + arr.length, 0);
+  // Função para filtrar disciplinas baseado nos filtros ativos
+  const getDisciplinasFiltradas = (semestre: string) => {
+    const disciplinasSemestre = [
+      ...(disciplinas?.completas[semestre] || []),
+      ...(disciplinas?.pendentes[semestre] || [])
+    ];
+
+    return disciplinasSemestre.filter((disc: any) => {
+      const isCompleta = disc.status === 'CONCLUIDA';
+      const isPendente = disc.status !== 'CONCLUIDA';
+      const isOptativa = disc.obrigatoria === false;
+
+      // Se nenhum filtro está ativo, mostra todas
+      if (!filtros.completos && !filtros.pendentes && !filtros.optativas) {
+        return true;
+      }
+
+      // Aplica filtros
+      let mostrar = true;
+      
+      if (filtros.completos && !isCompleta) mostrar = false;
+      if (filtros.pendentes && !isPendente) mostrar = false;
+      if (filtros.optativas && !isOptativa) mostrar = false;
+      
+      return mostrar;
+    });
+  };
+
+  const totalCompletas = semestres.reduce((acc, sem) => acc + getDisciplinasFiltradas(sem).filter((d: any) => d.status === 'CONCLUIDA').length, 0);
+  const totalPendentes = semestres.reduce((acc, sem) => acc + getDisciplinasFiltradas(sem).filter((d: any) => d.status !== 'CONCLUIDA').length, 0);
 
   // Função para buscar pré-requisitos e dependentes
   function getPreRequisitosAndDependentes(disciplina: any) {
@@ -190,16 +241,21 @@ export default function DashboardPage() {
             <FunnelIcon className="h-5 w-5 text-indigo-400" />
           </div>
           <div className="space-y-4">
-            {Object.entries(filtros).map(([key, val]) => (
+            {[
+              { key: 'semestre', label: 'Por Semestre', value: filtros.semestre },
+              { key: 'completos', label: 'Completas', value: filtros.completos },
+              { key: 'pendentes', label: 'Pendentes', value: filtros.pendentes },
+              { key: 'optativas', label: 'Optativas', value: filtros.optativas }
+            ].map(({ key, label, value }) => (
               <Switch.Group key={key} as="div" className="flex items-center justify-between">
-                <span className="font-medium capitalize">{key}</span>
+                <span className="font-medium">{label}</span>
                 <Switch
-                  checked={val}
+                  checked={value}
                   onChange={() => setFiltros(f => ({ ...f, [key]: !f[key as keyof typeof filtros] }))}
-                  className={`${val ? 'bg-indigo-500' : 'bg-slate-600'} relative inline-flex items-center h-6 rounded-full w-11 transition`}
+                  className={`${value ? 'bg-indigo-500' : 'bg-slate-600'} relative inline-flex items-center h-6 rounded-full w-11 transition`}
                 >
                   <span
-                    className={`${val ? 'translate-x-6' : 'translate-x-1'} inline-block w-4 h-4 transform bg-white rounded-full transition`}
+                    className={`${value ? 'translate-x-6' : 'translate-x-1'} inline-block w-4 h-4 transform bg-white rounded-full transition`}
                   />
                 </Switch>
               </Switch.Group>
@@ -229,7 +285,13 @@ export default function DashboardPage() {
           </div>
           <button
             className="mt-auto flex items-center justify-center gap-2 py-2 px-4 bg-indigo-500 hover:bg-indigo-600 rounded-lg font-semibold transition-shadow shadow-md hover:shadow-lg"
-            onClick={() => setModalOptativaOpen(true)}
+            onClick={async () => {
+              await carregarOptativas();
+              setModalOptativaOpen(true);
+              setModoAdicionar(false);
+              setOptativaSelecionada(null);
+              setOptativaParaAdicionar(null);
+            }}
           >
             <PlusIcon className="h-5 w-5" />
             Adicionar Optativas
@@ -295,14 +357,11 @@ export default function DashboardPage() {
                 <SemesterColumn
                   key={sem}
                   numero={sem}
-                  obrigatorias={
-                    (disciplinas!.completas[sem]?.length || 0) +
-                    (disciplinas!.pendentes[sem]?.length || 0)
-                  }
-                  disciplinas={[
-                    ...(disciplinas!.completas[sem] || []),
-                    ...(disciplinas!.pendentes[sem] || [])
-                  ]}
+                  obrigatorias={getDisciplinasFiltradas(sem).length}
+                  disciplinas={getDisciplinasFiltradas(sem).map(d => ({
+                    ...d,
+                    obrigatoria: (d as any).obrigatoria
+                  }))}
                   onDisciplinaClick={disc => {
                     const { preRequisitos, dependentes } = getPreRequisitosAndDependentes(disc);
                     setModalDisciplina({ ...disc, semestre: sem });
@@ -326,66 +385,290 @@ export default function DashboardPage() {
             saving={saving}
           />
 
-          {/* Modal de Optativa (simples, inline) */}
+          {/* Modal de Optativas */}
           {modalOptativaOpen && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60">
-              <div className="bg-slate-900 rounded-xl p-8 w-full max-w-md relative">
-                <button className="absolute top-2 right-4 text-2xl text-slate-400 hover:text-white" onClick={() => setModalOptativaOpen(false)}>×</button>
-                <h2 className="text-xl font-bold text-white mb-4">Adicionar Matéria Optativa</h2>
-                <div className="space-y-3">
-                  <input className="w-full rounded p-2 bg-slate-800 text-white" placeholder="Nome" value={novaOptativa.nome} onChange={e => setNovaOptativa(o => ({ ...o, nome: e.target.value }))} />
-                  <input className="w-full rounded p-2 bg-slate-800 text-white" placeholder="Código" value={novaOptativa.codigo} onChange={e => setNovaOptativa(o => ({ ...o, codigo: e.target.value }))} />
-                  <input className="w-full rounded p-2 bg-slate-800 text-white" placeholder="Horas" value={novaOptativa.cargaHoraria} onChange={e => setNovaOptativa(o => ({ ...o, cargaHoraria: e.target.value }))} />
-                  <select className="w-full rounded p-2 bg-slate-800 text-white" value={novaOptativa.status} onChange={e => setNovaOptativa(o => ({ ...o, status: e.target.value }))}>
-                    <option value="CONCLUIDA">Concluída</option>
-                    <option value="EM_ANDAMENTO">Em andamento</option>
-                    <option value="PENDENTE">Pendente</option>
-                    <option value="REPROVADA">Reprovada</option>
-                  </select>
-                  <select className="w-full rounded p-2 bg-slate-800 text-white" value={novaOptativa.semestre} onChange={e => setNovaOptativa(o => ({ ...o, semestre: e.target.value }))}>
-                    <option value="">Selecione o semestre</option>
-                    {semestres.map(sem => (
-                      <option key={sem} value={sem}>{sem}º Semestre</option>
-                    ))}
-                  </select>
-                </div>
-                <div className="flex justify-end gap-4 mt-6">
-                  <button className="bg-slate-600 hover:bg-slate-700 text-white px-6 py-2 rounded font-semibold" onClick={() => setModalOptativaOpen(false)}>Cancelar</button>
+            <div className="fixed inset-0 z-50 flex items-center justify-center">
+              {/* Overlay opaco */}
+              <div className="fixed inset-0 bg-slate-800/80 transition-opacity" aria-hidden="true" />
+              <div className="relative bg-slate-900 rounded-2xl shadow-xl max-w-4xl w-full mx-auto p-8 z-10 max-h-[80vh] overflow-y-auto">
+                <button className="absolute top-4 right-4 text-slate-400 hover:text-white text-2xl font-bold focus:outline-none" onClick={() => setModalOptativaOpen(false)}>×</button>
+                
+                <div className="flex justify-between items-center mb-6">
+                  <h2 className="text-2xl font-bold text-white">Gerenciar Optativas</h2>
                   <button
-                    className="bg-teal-600 hover:bg-teal-700 text-white px-6 py-2 rounded font-semibold"
-                    onClick={async () => {
-                      if (!novaOptativa.nome || !novaOptativa.codigo || !novaOptativa.cargaHoraria || !novaOptativa.semestre) return;
-                      await fetch('/api/disciplinas/optativa', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                          nome: novaOptativa.nome,
-                          codigo: novaOptativa.codigo,
-                          cargaHoraria: novaOptativa.cargaHoraria,
-                          status: novaOptativa.status,
-                          semestre: novaOptativa.semestre,
-                          preRequisitos: '',
-                          curso: session?.user?.curso ? cursoMapping[session.user.curso as keyof typeof cursoMapping] : '',
-                        }),
-                      });
-                      setModalOptativaOpen(false);
+                    className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg font-semibold"
+                    onClick={() => {
+                      setModoAdicionar(true);
+                      setOptativaSelecionada(null);
                       setNovaOptativa({ nome: '', codigo: '', cargaHoraria: '', status: 'PENDENTE', semestre: '' });
-                      setLoading(true);
-                      fetch('/api/disciplinas')
-                        .then(res => res.json())
-                        .then((data: DisciplinasAPIResponse & { error?: string }) => {
-                          if (data.error) {
-                            setErro(data.error);
-                            setDisciplinas(null);
-                          } else {
-                            setDisciplinas(data);
-                          }
-                        })
-                        .catch(() => setErro('Erro ao buscar disciplinas'))
-                        .finally(() => setLoading(false));
                     }}
-                  >Salvar</button>
+                  >
+                    + Nova Optativa
+                  </button>
                 </div>
+
+                {modoAdicionar ? (
+                  // Modo de adicionar nova optativa
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-semibold text-white mb-4">Adicionar Nova Optativa</h3>
+                    <div className="grid grid-cols-2 gap-4">
+                      <input className="w-full rounded p-3 bg-slate-800 text-white" placeholder="Nome" value={novaOptativa.nome} onChange={e => setNovaOptativa(o => ({ ...o, nome: e.target.value }))} />
+                      <input className="w-full rounded p-3 bg-slate-800 text-white" placeholder="Código" value={novaOptativa.codigo} onChange={e => setNovaOptativa(o => ({ ...o, codigo: e.target.value }))} />
+                      <input className="w-full rounded p-3 bg-slate-800 text-white" placeholder="Carga Horária" value={novaOptativa.cargaHoraria} onChange={e => setNovaOptativa(o => ({ ...o, cargaHoraria: e.target.value }))} />
+                      <select className="w-full rounded p-3 bg-slate-800 text-white" value={novaOptativa.status} onChange={e => setNovaOptativa(o => ({ ...o, status: e.target.value }))}>
+                        <option value="PENDENTE">Pendente</option>
+                        <option value="EM_ANDAMENTO">Em andamento</option>
+                        <option value="CONCLUIDA">Concluída</option>
+                        <option value="REPROVADA">Reprovada</option>
+                      </select>
+                      <select className="w-full rounded p-3 bg-slate-800 text-white" value={novaOptativa.semestre} onChange={e => setNovaOptativa(o => ({ ...o, semestre: e.target.value }))}>
+                        <option value="">Selecione o semestre</option>
+                        {semestres.map(sem => (
+                          <option key={sem} value={sem}>{sem}º Semestre</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className="flex justify-end gap-4 mt-6">
+                      <button className="bg-slate-600 hover:bg-slate-700 text-white px-6 py-2 rounded font-semibold" onClick={() => setModoAdicionar(false)}>Cancelar</button>
+                      <button
+                        className="bg-teal-600 hover:bg-teal-700 text-white px-6 py-2 rounded font-semibold"
+                        onClick={async () => {
+                          if (!novaOptativa.nome || !novaOptativa.codigo || !novaOptativa.cargaHoraria || !novaOptativa.semestre) return;
+                          await fetch('/api/disciplinas/optativa', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                              nome: novaOptativa.nome,
+                              codigo: novaOptativa.codigo,
+                              cargaHoraria: novaOptativa.cargaHoraria,
+                              status: novaOptativa.status,
+                              semestre: novaOptativa.semestre,
+                              preRequisitos: '',
+                              curso: session?.user?.curso ? cursoMapping[session.user.curso as keyof typeof cursoMapping] : '',
+                            }),
+                          });
+                          setModoAdicionar(false);
+                          setNovaOptativa({ nome: '', codigo: '', cargaHoraria: '', status: 'PENDENTE', semestre: '' });
+                          await carregarOptativas();
+                          setLoading(true);
+                          fetch('/api/disciplinas')
+                            .then(res => res.json())
+                            .then((data: DisciplinasAPIResponse & { error?: string }) => {
+                              if (data.error) {
+                                setErro(data.error);
+                                setDisciplinas(null);
+                              } else {
+                                setDisciplinas(data);
+                              }
+                            })
+                            .catch(() => setErro('Erro ao buscar disciplinas'))
+                            .finally(() => setLoading(false));
+                          
+                          // Fecha o modal após salvar
+                          setModalOptativaOpen(false);
+                        }}
+                      >Salvar</button>
+                    </div>
+                  </div>
+                ) : optativaParaAdicionar ? (
+                  // Modo de selecionar semestre para adicionar optativa
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-semibold text-white mb-4">Selecionar Semestre para: {optativaParaAdicionar.nome}</h3>
+                    <div className="bg-slate-800 rounded-lg p-4 space-y-4">
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <label className="text-sm text-slate-400">Nome</label>
+                          <div className="text-white font-medium">{optativaParaAdicionar.nome}</div>
+                        </div>
+                        <div>
+                          <label className="text-sm text-slate-400">Código</label>
+                          <div className="text-white font-medium">{optativaParaAdicionar.codigo}</div>
+                        </div>
+                        <div>
+                          <label className="text-sm text-slate-400">Carga Horária</label>
+                          <div className="text-white font-medium">{optativaParaAdicionar.cargaHoraria}h</div>
+                        </div>
+                      </div>
+                      <div>
+                        <label className="text-sm text-slate-400">Selecione o semestre onde deseja adicionar esta optativa:</label>
+                        <select 
+                          className="w-full rounded p-3 bg-slate-700 text-white mt-2"
+                          value={optativaParaAdicionar.semestreSelecionado || ''}
+                          onChange={(e) => {
+                            const semestre = parseInt(e.target.value);
+                            setOptativaParaAdicionar({
+                              ...optativaParaAdicionar,
+                              semestreSelecionado: semestre
+                            });
+                          }}
+                        >
+                          <option value="">Selecione o semestre</option>
+                          {semestres.map(sem => (
+                            <option key={sem} value={sem}>{sem}º Semestre</option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+                    <div className="flex justify-end gap-4 mt-6">
+                      <button className="bg-slate-600 hover:bg-slate-700 text-white px-6 py-2 rounded font-semibold" onClick={() => setOptativaParaAdicionar(null)}>Cancelar</button>
+                      <button 
+                        className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+                        disabled={!optativaParaAdicionar.semestreSelecionado}
+                        onClick={async () => {
+                          if (!optativaParaAdicionar.semestreSelecionado) return;
+                          
+                          await fetch('/api/disciplinas/optativa', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                              nome: optativaParaAdicionar.nome,
+                              codigo: optativaParaAdicionar.codigo,
+                              cargaHoraria: optativaParaAdicionar.cargaHoraria,
+                              status: 'PENDENTE',
+                              semestre: optativaParaAdicionar.semestreSelecionado,
+                              preRequisitos: '',
+                              curso: session?.user?.curso ? cursoMapping[session.user.curso as keyof typeof cursoMapping] : '',
+                            }),
+                          });
+                          
+                          setOptativaParaAdicionar(null);
+                          await carregarOptativas();
+                          setLoading(true);
+                          fetch('/api/disciplinas')
+                            .then(res => res.json())
+                            .then((data: DisciplinasAPIResponse & { error?: string }) => {
+                              if (data.error) {
+                                setErro(data.error);
+                                setDisciplinas(null);
+                              } else {
+                                setDisciplinas(data);
+                              }
+                            })
+                            .catch(() => setErro('Erro ao buscar disciplinas'))
+                            .finally(() => setLoading(false));
+                          
+                          // Fecha o modal após salvar
+                          setModalOptativaOpen(false);
+                        }}
+                      >
+                        Salvar
+                      </button>
+                    </div>
+                  </div>
+                ) : optativaSelecionada ? (
+                  // Modo de editar optativa selecionada
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-semibold text-white mb-4">Editar Optativa: {optativaSelecionada.nome}</h3>
+                    <div className="bg-slate-800 rounded-lg p-4 space-y-4">
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <label className="text-sm text-slate-400">Nome</label>
+                          <div className="text-white font-medium">{optativaSelecionada.nome}</div>
+                        </div>
+                        <div>
+                          <label className="text-sm text-slate-400">Código</label>
+                          <div className="text-white font-medium">{optativaSelecionada.codigo}</div>
+                        </div>
+                        <div>
+                          <label className="text-sm text-slate-400">Carga Horária</label>
+                          <div className="text-white font-medium">{optativaSelecionada.cargaHoraria}h</div>
+                        </div>
+                        <div>
+                          <label className="text-sm text-slate-400">Status Atual</label>
+                          <div className="text-white font-medium">{optativaSelecionada.status}</div>
+                        </div>
+                      </div>
+                      <div>
+                        <label className="text-sm text-slate-400">Semestre</label>
+                        <select 
+                          className="w-full rounded p-3 bg-slate-700 text-white mt-1"
+                          value={optativaSelecionada.semestreUsuario || ''}
+                          onChange={async (e) => {
+                            const novoSemestre = parseInt(e.target.value);
+                            await fetch('/api/disciplinas/progresso', {
+                              method: 'POST',
+                              headers: { 'Content-Type': 'application/json' },
+                              body: JSON.stringify([{
+                                disciplinaId: optativaSelecionada.id,
+                                status: optativaSelecionada.status,
+                                semestre: novoSemestre,
+                              }]),
+                            });
+                            setOptativaSelecionada({ ...optativaSelecionada, semestreUsuario: novoSemestre });
+                            setLoading(true);
+                            fetch('/api/disciplinas')
+                              .then(res => res.json())
+                              .then((data: DisciplinasAPIResponse & { error?: string }) => {
+                                if (data.error) {
+                                  setErro(data.error);
+                                  setDisciplinas(null);
+                                } else {
+                                  setDisciplinas(data);
+                                }
+                              })
+                              .catch(() => setErro('Erro ao buscar disciplinas'))
+                              .finally(() => setLoading(false));
+                          }}
+                        >
+                          <option value="">Selecione o semestre</option>
+                          {semestres.map(sem => (
+                            <option key={sem} value={sem}>{sem}º Semestre</option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+                    <div className="flex justify-end gap-4 mt-6">
+                      <button className="bg-slate-600 hover:bg-slate-700 text-white px-6 py-2 rounded font-semibold" onClick={() => setOptativaSelecionada(null)}>Voltar</button>
+                    </div>
+                  </div>
+                ) : (
+                  // Lista de optativas existentes
+                  <div>
+                    <h3 className="text-lg font-semibold text-white mb-4">Optativas Disponíveis</h3>
+                    {loadingOptativas ? (
+                      <div className="text-center py-8">
+                        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-indigo-500 mx-auto"></div>
+                        <p className="mt-2 text-slate-400">Carregando optativas...</p>
+                      </div>
+                    ) : (
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {optativas.map((optativa) => (
+                          <div key={optativa.id} className="bg-slate-800 rounded-lg p-4 border border-slate-700">
+                            <div className="flex justify-between items-start mb-3">
+                              <h4 className="font-semibold text-white">{optativa.nome}</h4>
+                              <span className="bg-purple-600 text-white text-xs px-2 py-1 rounded-full">OPT</span>
+                            </div>
+                            <div className="text-sm text-slate-400 space-y-1">
+                              <div>Código: {optativa.codigo}</div>
+                              <div>Carga Horária: {optativa.cargaHoraria}h</div>
+                              <div>Status: {optativa.status}</div>
+                              {optativa.semestreUsuario && (
+                                <div>Semestre: {optativa.semestreUsuario}º</div>
+                              )}
+                            </div>
+                            <div className="mt-4 flex gap-2">
+                                                             {!optativa.adicionada ? (
+                                 <button
+                                   className="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded text-sm font-medium"
+                                   onClick={() => setOptativaParaAdicionar(optativa)}
+                                 >
+                                   Adicionar
+                                 </button>
+                              ) : (
+                                <button
+                                  className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-sm font-medium"
+                                  onClick={() => setOptativaSelecionada(optativa)}
+                                >
+                                  Editar
+                                </button>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
           )}
