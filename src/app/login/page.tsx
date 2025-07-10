@@ -477,31 +477,31 @@ export default function AuthPage() {
 
   return (
     <Suspense fallback={<div>Carregando...</div>}>
-      <div className="min-h-screen w-full flex items-center justify-center bg-[#131a1b]">
-        <div className="w-full max-w-5xl flex rounded-2xl overflow-hidden shadow-lg border border-[#222b2c] bg-[#131a1b]" style={{ minHeight: 540 }}>
+      <div className="min-h-screen w-full flex items-center justify-center bg-[#131a1b] p-4">
+        <div className="w-full max-w-5xl flex flex-col lg:flex-row rounded-2xl overflow-hidden shadow-lg border border-[#222b2c] bg-[#131a1b]" style={{ minHeight: 540 }}>
           {/* Lado esquerdo: Logo */}
-          <div className="flex flex-col items-center justify-center w-1/2 bg-[#131a1b] border-r border-[#222b2c] p-8">
-            <div className="rounded-full w-68 h-68 flex items-center justify-center mb-4 overflow-hidden">
+          <div className="flex flex-col items-center justify-center w-full lg:w-1/2 bg-[#131a1b] border-b lg:border-b-0 lg:border-r border-[#222b2c] p-6 lg:p-8">
+            <div className="rounded-full w-48 h-48 lg:w-68 lg:h-68 flex items-center justify-center mb-4 overflow-hidden">
               <img src="/logo.png" alt="Logo do sistema" className="object-contain w-full h-full" />
             </div>
             {/* <span className="text-2xl font-bold text-white mt-2">Logo</span> */}
           </div>
           {/* Lado direito: Formulário */}
-          <div className="flex flex-col justify-center w-1/2 p-10 bg-[#181f20] rounded-r-2xl">
+          <div className="flex flex-col justify-center w-full lg:w-1/2 p-6 lg:p-10 bg-[#181f20] rounded-b-2xl lg:rounded-b-none lg:rounded-r-2xl">
             <div className="w-full max-w-md mx-auto">
               {showReset ? (
                 <>
-                  <h2 className="text-2xl font-bold text-white mb-6 text-center">Redefinir senha</h2>
+                  <h2 className="text-xl lg:text-2xl font-bold text-white mb-4 lg:mb-6 text-center">Redefinir senha</h2>
                   <ResetPasswordForm onSwitchLogin={() => setShowReset(false)} />
                 </>
               ) : showRegister ? (
                 <>
-                  <h2 className="text-2xl font-bold text-white mb-6 text-center">Cadastro</h2>
+                  <h2 className="text-xl lg:text-2xl font-bold text-white mb-4 lg:mb-6 text-center">Cadastro</h2>
                   <RegisterForm onSwitch={() => setShowRegister(false)} />
                 </>
               ) : (
                 <>
-                  <h2 className="text-2xl font-bold text-white mb-6 text-center">Login</h2>
+                  <h2 className="text-xl lg:text-2xl font-bold text-white mb-4 lg:mb-6 text-center">Login</h2>
                   <LoginForm onSwitch={() => setShowRegister(true)} onForgotPassword={() => setShowReset(true)} />
                 </>
               )}

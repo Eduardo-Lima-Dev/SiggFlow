@@ -90,10 +90,10 @@ export default function ProgressoPage() {
 
   return (
     <ProtectedRoute>
-      <div className="min-h-screen flex items-center justify-center bg-[#1a2324]">
-        <div className="w-full max-w-2xl bg-[#192223] rounded-2xl shadow-lg p-8 border border-[#222b2c]">
-          <h2 className="text-2xl font-bold text-white mb-6 text-center">Progresso Acadêmico</h2>
-          <div className="mb-6">
+      <div className="min-h-screen flex items-center justify-center bg-[#1a2324] p-4">
+        <div className="w-full max-w-sm sm:max-w-2xl bg-[#192223] rounded-2xl shadow-lg p-4 sm:p-8 border border-[#222b2c]">
+          <h2 className="text-xl sm:text-2xl font-bold text-white mb-4 sm:mb-6 text-center">Progresso Acadêmico</h2>
+          <div className="mb-4 sm:mb-6">
             <label className="block text-sm font-medium text-gray-300 mb-1">Semestre</label>
             <select
               className="w-full py-2 px-3 rounded bg-[#181f20] text-white border border-gray-700 focus:outline-none"
@@ -106,12 +106,12 @@ export default function ProgressoPage() {
             </select>
           </div>
           {semestreSelecionado && (
-            <div className="bg-[#20292a] rounded-lg p-6 mb-6">
+            <div className="bg-[#20292a] rounded-lg p-4 sm:p-6 mb-4 sm:mb-6">
               {(disciplinas[semestreSelecionado] || []).map((disc: any) => (
-                <div key={disc.id} className="flex items-center justify-between mb-4">
-                  <span className="text-lg text-white font-semibold">{disc.nome}</span>
+                <div key={disc.id} className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 gap-2 sm:gap-0">
+                  <span className="text-base sm:text-lg text-white font-semibold">{disc.nome}</span>
                   <select
-                    className="py-1 px-2 rounded bg-[#181f20] text-white border border-gray-700 focus:outline-none"
+                    className="py-1 px-2 rounded bg-[#181f20] text-white border border-gray-700 focus:outline-none text-sm sm:text-base"
                     value={progresso[disc.id]?.status || "PENDENTE"}
                     onChange={e => handleStatusChange(disc.id, e.target.value, semestreSelecionado)}
                   >
@@ -126,7 +126,7 @@ export default function ProgressoPage() {
           <button
             onClick={handleSalvar}
             disabled={loading}
-            className="w-full py-2 px-4 rounded-md text-white bg-[#219EBC] hover:bg-[#126782] font-semibold text-lg disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full py-2 px-4 rounded-md text-white bg-[#219EBC] hover:bg-[#126782] font-semibold text-base sm:text-lg disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {loading ? "Salvando..." : "Salvar"}
           </button>

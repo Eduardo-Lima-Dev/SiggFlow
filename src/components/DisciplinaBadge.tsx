@@ -22,16 +22,16 @@ const DisciplinaBadge: React.FC<DisciplinaBadgeProps> = ({ nome, status, codigo,
   return (
     <div
       className={
-        `${style} w-56 h-28 flex flex-col items-center justify-center rounded-lg text-base font-semibold shadow cursor-pointer text-center p-2 hover:shadow-md transition-shadow relative`
+        `${style} w-40 h-20 lg:w-56 lg:h-28 flex flex-col items-center justify-center rounded-lg text-sm lg:text-base font-semibold shadow cursor-pointer text-center p-1 lg:p-2 hover:shadow-md transition-shadow relative`
       }
       onClick={onClick}
     >
       {obrigatoria === false && (
-        <div className="absolute top-1 right-1 bg-purple-600 text-white text-xs px-2 py-1 rounded-full font-bold">
+        <div className="absolute top-1 right-1 bg-purple-600 text-white text-xs px-1 lg:px-2 py-1 rounded-full font-bold">
           OPT
         </div>
       )}
-      <div className="font-bold text-white text-base mb-1">{nome}</div>
+      <div className="font-bold text-white text-xs lg:text-base mb-1">{nome}</div>
       <div className="text-xs text-white font-normal mt-1">cód.: {codigo} | {cargaHoraria} c/h</div>
     </div>
   );

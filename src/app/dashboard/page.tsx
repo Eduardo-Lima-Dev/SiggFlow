@@ -47,7 +47,8 @@ export default function DashboardPage() {
     semestre: true,
     completos: false,
     pendentes: false,
-    optativas: false
+    optativas: false,
+    atrasadas: false
   });
   const [disciplinas, setDisciplinas] = useState<DisciplinasAPIResponse | null>(null);
   const [loading, setLoading] = useState(true);
@@ -71,6 +72,24 @@ export default function DashboardPage() {
   const [optativaSelecionada, setOptativaSelecionada] = useState<any>(null);
   const [optativaParaAdicionar, setOptativaParaAdicionar] = useState<any>(null);
   const [sidebarAberta, setSidebarAberta] = useState(true);
+
+  // Controla o estado do sidebar baseado no tamanho da tela
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth >= 1024) { // lg breakpoint
+        setSidebarAberta(true);
+      } else {
+        setSidebarAberta(false);
+      }
+    };
+
+    // Define o estado inicial
+    handleResize();
+
+    // Adiciona listener para mudanças de tamanho
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   useEffect(() => {
     if (status !== 'authenticated') return;
@@ -145,9 +164,10 @@ export default function DashboardPage() {
       const isCompleta = disc.status === 'CONCLUIDA';
       const isPendente = disc.status !== 'CONCLUIDA';
       const isOptativa = disc.obrigatoria === false;
+      const isAtrasada = disc.status === 'ATRASADO';
 
       // Se nenhum filtro está ativo, mostra todas
-      if (!filtros.completos && !filtros.pendentes && !filtros.optativas) {
+      if (!filtros.completos && !filtros.pendentes && !filtros.optativas && !filtros.atrasadas) {
         return true;
       }
 
@@ -157,6 +177,7 @@ export default function DashboardPage() {
       if (filtros.completos && !isCompleta) mostrar = false;
       if (filtros.pendentes && !isPendente) mostrar = false;
       if (filtros.optativas && !isOptativa) mostrar = false;
+      if (filtros.atrasadas && !isAtrasada) mostrar = false;
       
       return mostrar;
     });
@@ -234,28 +255,185 @@ export default function DashboardPage() {
 
   return (
     <ProtectedRoute>
-      <div className="min-h-screen bg-slate-900 text-gray-100 flex">
-        {/* SIDEBAR */}
-        <aside className={`${sidebarAberta ? 'w-64' : 'w-12'} bg-slate-800/80 backdrop-blur-md rounded-xl m-4 flex flex-col sticky top-4 h-[calc(100vh-2rem)] transition-all duration-300`}>
-          {sidebarAberta ? (
-            <>
-              <div className="p-6 flex-1 overflow-auto">
-                <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-xl font-semibold tracking-wide">Filtros</h2>
+      <div className="min-h-screen bg-slate-900 text-gray-100 flex flex-col lg:flex-row">
+        {/* SIDEBAR DESKTOP */}
+        <aside className={`hidden lg:flex flex-col bg-slate-800/80 backdrop-blur-md rounded-xl m-4 sticky top-4 h-[calc(100vh-2rem)] transition-all duration-300 z-20 ${sidebarAberta ? 'w-64' : 'w-20'}`}>
+          {/* Quando o sidebar estiver fechado, mostrar o ícone de filtro no topo */}
+          {!sidebarAberta && (
+            <div className="flex items-center justify-center mt-4 mb-2">
+              <FunnelIcon className="h-6 w-6 text-indigo-400" />
+            </div>
+          )}
+          {sidebarAberta && (
+            <div className="flex-1 p-6 overflow-auto">
+              {/* Conteúdo do filtro (sidebar) */}
+              <div className="flex items-center justify-between mb-6">
+                
+                <span className="text-xl font-semibold tracking-wide">Filtros</span>
+                <FunnelIcon className="h-6 w-6 text-indigo-400" />
+              </div>
+              <div className="space-y-4">
+                {[
+                  { key: 'completos', label: 'Completas', value: filtros.completos },
+                  { key: 'pendentes', label: 'Pendentes', value: filtros.pendentes },
+                  { key: 'optativas', label: 'Optativas', value: filtros.optativas },
+                  { key: 'atrasadas', label: 'Atrasadas', value: filtros.atrasadas }
+                ].map(({ key, label, value }) => (
+                  <Switch.Group key={key} as="div" className="flex items-center justify-between">
+                    <span className="font-medium">{label}</span>
+                    <Switch
+                      checked={value}
+                      onChange={() => setFiltros(f => ({ ...f, [key as keyof typeof filtros]: !f[key as keyof typeof filtros] }))}
+                      className={`${value ? 'bg-indigo-500' : 'bg-slate-600'} relative inline-flex items-center h-6 rounded-full w-11 transition`}
+                    >
+                      <span
+                        className={`${value ? 'translate-x-6' : 'translate-x-1'} inline-block w-4 h-4 transform bg-white rounded-full transition`}
+                      />
+                    </Switch>
+                  </Switch.Group>
+                ))}
+              </div>
+              {/* Legenda de status */}
+              <div className="mt-6 space-y-2">
+                <div className="text-xs text-slate-400 font-semibold mb-1">Legenda:</div>
+                <div className="flex flex-col gap-2">
+                  <div className="flex items-center gap-2">
+                    <span className="inline-block w-5 h-5 rounded-sm bg-green-700 border border-green-800"></span>
+                    <span className="text-sm text-slate-200">Concluída</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="inline-block w-5 h-5 rounded-sm" style={{ background: '#f4b400' }}></span>
+                    <span className="text-sm text-slate-200">Em andamento</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="inline-block w-5 h-5 rounded-sm bg-yellow-700 border border-yellow-800"></span>
+                    <span className="text-sm text-slate-200">Pendente</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="inline-block w-5 h-5 rounded-sm bg-gray-600 border border-gray-700"></span>
+                    <span className="text-sm text-slate-200">Atrasado</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="inline-block w-5 h-5 rounded-sm bg-red-700 border border-red-800"></span>
+                    <span className="text-sm text-slate-200">Reprovada</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+          {/* Spacer para empurrar o rodapé para baixo, sempre presente */}
+          <div className="flex-1" />
+          {/* Rodapé: botão de abrir/fechar */}
+          <div className="flex items-center justify-center h-20 border-t border-slate-700 p-2">
+            {sidebarAberta ? (
+              <button
+                className="flex items-center justify-between w-full bg-indigo-500 hover:bg-indigo-600 text-white font-semibold rounded-xl px-4 py-3 transition-all shadow-md"
+                onClick={async () => {
+                  await carregarOptativas();
+                  setModalOptativaOpen(true);
+                  setModoAdicionar(false);
+                  setOptativaSelecionada(null);
+                  setOptativaParaAdicionar(null);
+                }}
+              >
+                <span className="flex items-center gap-2">
+                  <PlusIcon className="h-5 w-5" />
+                  <span>Adicionar Optativas</span>
+                </span>
+                <button
+                  onClick={e => { e.stopPropagation(); setSidebarAberta(false); }}
+                  className="ml-2 p-1 rounded hover:bg-indigo-700 transition-colors"
+                  title="Fechar sidebar"
+                >
+                  <ChevronLeftIcon className="h-5 w-5 text-white" />
+                </button>
+              </button>
+            ) : (
+              <button
+                className="flex items-center justify-center w-16 h-12 bg-indigo-500 hover:bg-indigo-600 text-white font-semibold rounded-xl transition-all shadow-md"
+                onClick={() => setSidebarAberta(true)}
+                title="Abrir sidebar"
+              >
+                <PlusIcon className="h-5 w-5" />
+                <ChevronRightIcon className="h-5 w-5 ml-2" />
+              </button>
+            )}
+          </div>
+        </aside>
+
+        {/* MAIN CONTENT */}
+        <main className="flex-1 flex flex-col space-y-3 lg:space-y-6 m-2 lg:m-4">
+          {/* HEADER */}
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between space-y-3 md:space-y-0">
+            <h1 className="text-2xl lg:text-4xl font-extrabold">Bem-vindo, {session?.user?.name}!</h1>
+            <button
+              onClick={() => signOut({ callbackUrl: '/login' })}
+              className="px-4 lg:px-5 py-2 bg-red-500 hover:bg-red-600 rounded-full font-medium transition-colors text-sm lg:text-base"
+            >
+              Sair
+            </button>
+          </div>
+
+          {/* INFO DO ALUNO */}
+          <div className="bg-slate-800 rounded-xl p-4 lg:p-5 flex flex-col lg:flex-row justify-between space-y-3 lg:space-y-0">
+            {[
+              { label: 'Nome', value: session?.user?.name },
+              { label: 'Email', value: session?.user?.email },
+              {
+                label: 'Curso',
+                value: session?.user?.curso
+                  ? cursoLabels[session.user.curso as keyof typeof cursoLabels]
+                  : 'N/A'
+              },
+              {
+                label: 'Currículo',
+                value: disciplinas?.curriculo ? `${disciplinas.curriculo.nome} (${disciplinas.curriculo.ano})` : 'N/A',
+              },
+            ].map(({ label, value }) => (
+              <div key={label} className="flex flex-col">
+                <span className="text-xs lg:text-sm text-slate-400">{label}</span>
+                <span className="font-semibold text-sm lg:text-base">{value}</span>
+              </div>
+            ))}
+          </div>
+
+          {/* CARDS DE CONTAGEM */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 lg:gap-6">
+            {[
+              { label: 'Matérias Completas', value: totalCompletas, color: 'green' },
+              { label: 'Matérias Pendentes', value: totalPendentes, color: 'yellow' },
+            ].map(card => (
+              <div
+                key={card.label}
+                className="bg-slate-800 rounded-2xl p-4 lg:p-6 flex flex-col items-center shadow-lg hover:shadow-xl transition-shadow"
+              >
+                <span className="text-2xl lg:text-4xl font-bold">{card.value}</span>
+                <span className={`mt-2 text-${card.color}-400 font-medium text-sm lg:text-base`}>{card.label}</span>
+              </div>
+            ))}
+          </div>
+
+          {/* CARD DE FILTRO MOBILE */}
+          <div className="block lg:hidden">
+            <div className="bg-slate-800/80 backdrop-blur-md rounded-xl my-2 flex flex-col transition-all duration-300 z-20">
+              <div className="p-4 flex-1 overflow-auto">
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-lg font-semibold tracking-wide">Filtros</h2>
                   <FunnelIcon className="h-5 w-5 text-indigo-400" />
                 </div>
-                <div className="space-y-4">
+                <div className="space-y-3">
                   {[
                     { key: 'semestre', label: 'Por Semestre', value: filtros.semestre },
                     { key: 'completos', label: 'Completas', value: filtros.completos },
                     { key: 'pendentes', label: 'Pendentes', value: filtros.pendentes },
-                    { key: 'optativas', label: 'Optativas', value: filtros.optativas }
+                    { key: 'optativas', label: 'Optativas', value: filtros.optativas },
+                    { key: 'atrasadas', label: 'Atrasadas', value: filtros.atrasadas }
                   ].map(({ key, label, value }) => (
                     <Switch.Group key={key} as="div" className="flex items-center justify-between">
                       <span className="font-medium">{label}</span>
                       <Switch
                         checked={value}
-                        onChange={() => setFiltros(f => ({ ...f, [key]: !f[key as keyof typeof filtros] }))}
+                        onChange={() => setFiltros(f => ({ ...f, [key as keyof typeof filtros]: !f[key as keyof typeof filtros] }))}
                         className={`${value ? 'bg-indigo-500' : 'bg-slate-600'} relative inline-flex items-center h-6 rounded-full w-11 transition`}
                       >
                         <span
@@ -270,23 +448,23 @@ export default function DashboardPage() {
                   <div className="text-xs text-slate-400 font-semibold mb-1">Legenda:</div>
                   <div className="flex flex-col gap-2">
                     <div className="flex items-center gap-2">
-                      <span className="inline-block w-5 h-5 rounded bg-green-700 border border-green-800"></span>
+                      <span className="inline-block w-5 h-5 rounded-sm bg-green-700 border border-green-800"></span>
                       <span className="text-sm text-slate-200">Concluída</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className="inline-block w-5 h-5 rounded" style={{ background: '#f4b400' }}></span>
+                      <span className="inline-block w-5 h-5 rounded-sm" style={{ background: '#f4b400' }}></span>
                       <span className="text-sm text-slate-200">Em andamento</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className="inline-block w-5 h-5 rounded bg-yellow-700 border border-yellow-800"></span>
+                      <span className="inline-block w-5 h-5 rounded-sm bg-yellow-700 border border-yellow-800"></span>
                       <span className="text-sm text-slate-200">Pendente</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className="inline-block w-5 h-5 rounded bg-gray-600 border border-gray-700"></span>
+                      <span className="inline-block w-5 h-5 rounded-sm bg-gray-600 border border-gray-700"></span>
                       <span className="text-sm text-slate-200">Atrasado</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className="inline-block w-5 h-5 rounded bg-red-700 border border-red-800"></span>
+                      <span className="inline-block w-5 h-5 rounded-sm bg-red-700 border border-red-800"></span>
                       <span className="text-sm text-slate-200">Reprovada</span>
                     </div>
                   </div>
@@ -307,87 +485,14 @@ export default function DashboardPage() {
                     <PlusIcon className="h-5 w-5" />
                     Adicionar Optativas
                   </button>
-                  <button
-                    onClick={() => setSidebarAberta(false)}
-                    className="p-3 rounded-lg hover:bg-slate-700 transition-colors flex items-center justify-center"
-                    title="Fechar filtros"
-                  >
-                    <ChevronLeftIcon className="h-5 w-5 text-indigo-400" />
-                  </button>
                 </div>
               </div>
-            </>
-          ) : (
-            <div className="flex flex-col h-full">
-              <div className="flex-1"></div>
-              <div className="p-1">
-                <button
-                  onClick={() => setSidebarAberta(!sidebarAberta)}
-                  className="w-full p-3 rounded-lg hover:bg-slate-700 transition-colors flex items-center justify-center"
-                  title="Abrir filtros"
-                >
-                  <ChevronRightIcon className="h-5 w-5 text-indigo-400" />
-                </button>
-              </div>
             </div>
-          )}
-        </aside>
-
-        {/* MAIN CONTENT */}
-        <main className="flex-1 flex flex-col space-y-6 m-4">
-          {/* HEADER */}
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between space-y-4 md:space-y-0">
-            <h1 className="text-4xl font-extrabold">Bem-vindo, {session?.user?.name}!</h1>
-            <button
-              onClick={() => signOut({ callbackUrl: '/login' })}
-              className="px-5 py-2 bg-red-500 hover:bg-red-600 rounded-full font-medium transition-colors"
-            >
-              Sair
-            </button>
-          </div>
-
-          {/* INFO DO ALUNO */}
-          <div className="bg-slate-800 rounded-xl p-5 flex flex-col md:flex-row justify-between space-y-4 md:space-y-0">
-            {[
-              { label: 'Nome', value: session?.user?.name },
-              { label: 'Email', value: session?.user?.email },
-              {
-                label: 'Curso',
-                value: session?.user?.curso
-                  ? cursoLabels[session.user.curso as keyof typeof cursoLabels]
-                  : 'N/A'
-              },
-              {
-                label: 'Currículo',
-                value: disciplinas?.curriculo ? `${disciplinas.curriculo.nome} (${disciplinas.curriculo.ano})` : 'N/A',
-              },
-            ].map(({ label, value }) => (
-              <div key={label} className="flex flex-col">
-                <span className="text-sm text-slate-400">{label}</span>
-                <span className="font-semibold">{value}</span>
-              </div>
-            ))}
-          </div>
-
-          {/* CARDS DE CONTAGEM */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-            {[
-              { label: 'Matérias Completas', value: totalCompletas, color: 'green' },
-              { label: 'Matérias Pendentes', value: totalPendentes, color: 'yellow' },
-            ].map(card => (
-              <div
-                key={card.label}
-                className="bg-slate-800 rounded-2xl p-6 flex flex-col items-center shadow-lg hover:shadow-xl transition-shadow"
-              >
-                <span className="text-4xl font-bold">{card.value}</span>
-                <span className={`mt-2 text-${card.color}-400 font-medium`}>{card.label}</span>
-              </div>
-            ))}
           </div>
 
           {/* GRID DE SEMESTRES EM LISTA VERTICAL */}
-          <div className="py-4">
-            <div className="flex flex-col gap-8">
+          <div className="py-2 lg:py-4">
+            <div className="flex flex-col gap-4 lg:gap-8">
               {semestres.map(sem => (
                 <SemesterColumn
                   key={sem}
@@ -422,16 +527,16 @@ export default function DashboardPage() {
 
           {/* Modal de Optativas */}
           {modalOptativaOpen && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center">
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
               {/* Overlay opaco */}
               <div className="fixed inset-0 bg-slate-800/80 transition-opacity" aria-hidden="true" />
-              <div className="relative bg-slate-900 rounded-2xl shadow-xl max-w-4xl w-full mx-auto p-8 z-10 max-h-[80vh] overflow-y-auto">
-                <button className="absolute top-4 right-4 text-slate-400 hover:text-white text-2xl font-bold focus:outline-none" onClick={() => setModalOptativaOpen(false)}>×</button>
+              <div className="relative bg-slate-900 rounded-2xl shadow-xl max-w-4xl w-full mx-auto p-4 sm:p-8 z-10 max-h-[80vh] overflow-y-auto">
+                <button className="absolute top-2 sm:top-4 right-2 sm:right-4 text-slate-400 hover:text-white text-2xl font-bold focus:outline-none" onClick={() => setModalOptativaOpen(false)}>×</button>
                 
-                <div className="flex justify-between items-center mb-6">
-                  <h2 className="text-2xl font-bold text-white">Gerenciar Optativas</h2>
+                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 sm:mb-6 gap-4 sm:gap-0">
+                  <h2 className="text-xl sm:text-2xl font-bold text-white">Gerenciar Optativas</h2>
                   <button
-                    className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg font-semibold"
+                    className="bg-indigo-600 hover:bg-indigo-700 text-white px-3 sm:px-4 py-2 rounded-lg font-semibold text-sm sm:text-base"
                     onClick={() => {
                       setModoAdicionar(true);
                       setOptativaSelecionada(null);
@@ -446,27 +551,27 @@ export default function DashboardPage() {
                   // Modo de adicionar nova optativa
                   <div className="space-y-4">
                     <h3 className="text-lg font-semibold text-white mb-4">Adicionar Nova Optativa</h3>
-                    <div className="grid grid-cols-2 gap-4">
-                      <input className="w-full rounded p-3 bg-slate-800 text-white" placeholder="Nome" value={novaOptativa.nome} onChange={e => setNovaOptativa(o => ({ ...o, nome: e.target.value }))} />
-                      <input className="w-full rounded p-3 bg-slate-800 text-white" placeholder="Código" value={novaOptativa.codigo} onChange={e => setNovaOptativa(o => ({ ...o, codigo: e.target.value }))} />
-                      <input className="w-full rounded p-3 bg-slate-800 text-white" placeholder="Carga Horária" value={novaOptativa.cargaHoraria} onChange={e => setNovaOptativa(o => ({ ...o, cargaHoraria: e.target.value }))} />
-                      <select className="w-full rounded p-3 bg-slate-800 text-white" value={novaOptativa.status} onChange={e => setNovaOptativa(o => ({ ...o, status: e.target.value }))}>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                      <input className="w-full rounded p-2 sm:p-3 bg-slate-800 text-white text-sm sm:text-base" placeholder="Nome" value={novaOptativa.nome} onChange={e => setNovaOptativa(o => ({ ...o, nome: e.target.value }))} />
+                      <input className="w-full rounded p-2 sm:p-3 bg-slate-800 text-white text-sm sm:text-base" placeholder="Código" value={novaOptativa.codigo} onChange={e => setNovaOptativa(o => ({ ...o, codigo: e.target.value }))} />
+                      <input className="w-full rounded p-2 sm:p-3 bg-slate-800 text-white text-sm sm:text-base" placeholder="Carga Horária" value={novaOptativa.cargaHoraria} onChange={e => setNovaOptativa(o => ({ ...o, cargaHoraria: e.target.value }))} />
+                      <select className="w-full rounded p-2 sm:p-3 bg-slate-800 text-white text-sm sm:text-base" value={novaOptativa.status} onChange={e => setNovaOptativa(o => ({ ...o, status: e.target.value }))}>
                         <option value="PENDENTE">Pendente</option>
                         <option value="EM_ANDAMENTO">Em andamento</option>
                         <option value="CONCLUIDA">Concluída</option>
                         <option value="REPROVADA">Reprovada</option>
                       </select>
-                      <select className="w-full rounded p-3 bg-slate-800 text-white" value={novaOptativa.semestre} onChange={e => setNovaOptativa(o => ({ ...o, semestre: e.target.value }))}>
+                      <select className="w-full rounded p-2 sm:p-3 bg-slate-800 text-white text-sm sm:text-base" value={novaOptativa.semestre} onChange={e => setNovaOptativa(o => ({ ...o, semestre: e.target.value }))}>
                         <option value="">Selecione o semestre</option>
                         {semestres.map(sem => (
                           <option key={sem} value={sem}>{sem}º Semestre</option>
                         ))}
                       </select>
                     </div>
-                    <div className="flex justify-end gap-4 mt-6">
-                      <button className="bg-slate-600 hover:bg-slate-700 text-white px-6 py-2 rounded font-semibold" onClick={() => setModoAdicionar(false)}>Cancelar</button>
+                    <div className="flex flex-col sm:flex-row justify-end gap-2 sm:gap-4 mt-4 sm:mt-6">
+                      <button className="bg-slate-600 hover:bg-slate-700 text-white px-4 sm:px-6 py-2 rounded font-semibold text-sm sm:text-base" onClick={() => setModoAdicionar(false)}>Cancelar</button>
                       <button
-                        className="bg-teal-600 hover:bg-teal-700 text-white px-6 py-2 rounded font-semibold"
+                        className="bg-teal-600 hover:bg-teal-700 text-white px-4 sm:px-6 py-2 rounded font-semibold text-sm sm:text-base"
                         onClick={async () => {
                           if (!novaOptativa.nome || !novaOptativa.codigo || !novaOptativa.cargaHoraria || !novaOptativa.semestre) return;
                           await fetch('/api/disciplinas/optativa', {
@@ -510,18 +615,18 @@ export default function DashboardPage() {
                   <div className="space-y-4">
                     <h3 className="text-lg font-semibold text-white mb-4">Selecionar Semestre para: {optativaParaAdicionar.nome}</h3>
                     <div className="bg-slate-800 rounded-lg p-4 space-y-4">
-                      <div className="grid grid-cols-2 gap-4">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                         <div>
                           <label className="text-sm text-slate-400">Nome</label>
-                          <div className="text-white font-medium">{optativaParaAdicionar.nome}</div>
+                          <div className="text-white font-medium text-sm sm:text-base">{optativaParaAdicionar.nome}</div>
                         </div>
                         <div>
                           <label className="text-sm text-slate-400">Código</label>
-                          <div className="text-white font-medium">{optativaParaAdicionar.codigo}</div>
+                          <div className="text-white font-medium text-sm sm:text-base">{optativaParaAdicionar.codigo}</div>
                         </div>
                         <div>
                           <label className="text-sm text-slate-400">Carga Horária</label>
-                          <div className="text-white font-medium">{optativaParaAdicionar.cargaHoraria}h</div>
+                          <div className="text-white font-medium text-sm sm:text-base">{optativaParaAdicionar.cargaHoraria}h</div>
                         </div>
                       </div>
                       <div>
@@ -544,10 +649,10 @@ export default function DashboardPage() {
                         </select>
                       </div>
                     </div>
-                    <div className="flex justify-end gap-4 mt-6">
-                      <button className="bg-slate-600 hover:bg-slate-700 text-white px-6 py-2 rounded font-semibold" onClick={() => setOptativaParaAdicionar(null)}>Cancelar</button>
+                    <div className="flex flex-col sm:flex-row justify-end gap-2 sm:gap-4 mt-4 sm:mt-6">
+                      <button className="bg-slate-600 hover:bg-slate-700 text-white px-4 sm:px-6 py-2 rounded font-semibold text-sm sm:text-base" onClick={() => setOptativaParaAdicionar(null)}>Cancelar</button>
                       <button 
-                        className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="bg-green-600 hover:bg-green-700 text-white px-4 sm:px-6 py-2 rounded font-semibold text-sm sm:text-base disabled:opacity-50 disabled:cursor-not-allowed"
                         disabled={!optativaParaAdicionar.semestreSelecionado}
                         onClick={async () => {
                           if (!optativaParaAdicionar.semestreSelecionado) return;
@@ -595,22 +700,22 @@ export default function DashboardPage() {
                   <div className="space-y-4">
                     <h3 className="text-lg font-semibold text-white mb-4">Editar Optativa: {optativaSelecionada.nome}</h3>
                     <div className="bg-slate-800 rounded-lg p-4 space-y-4">
-                      <div className="grid grid-cols-2 gap-4">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                         <div>
                           <label className="text-sm text-slate-400">Nome</label>
-                          <div className="text-white font-medium">{optativaSelecionada.nome}</div>
+                          <div className="text-white font-medium text-sm sm:text-base">{optativaSelecionada.nome}</div>
                         </div>
                         <div>
                           <label className="text-sm text-slate-400">Código</label>
-                          <div className="text-white font-medium">{optativaSelecionada.codigo}</div>
+                          <div className="text-white font-medium text-sm sm:text-base">{optativaSelecionada.codigo}</div>
                         </div>
                         <div>
                           <label className="text-sm text-slate-400">Carga Horária</label>
-                          <div className="text-white font-medium">{optativaSelecionada.cargaHoraria}h</div>
+                          <div className="text-white font-medium text-sm sm:text-base">{optativaSelecionada.cargaHoraria}h</div>
                         </div>
                         <div>
                           <label className="text-sm text-slate-400">Status Atual</label>
-                          <div className="text-white font-medium">{optativaSelecionada.status}</div>
+                          <div className="text-white font-medium text-sm sm:text-base">{optativaSelecionada.status}</div>
                         </div>
                       </div>
                       <div>
@@ -666,14 +771,14 @@ export default function DashboardPage() {
                         <p className="mt-2 text-slate-400">Carregando optativas...</p>
                       </div>
                     ) : (
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
                         {optativas.map((optativa) => (
-                          <div key={optativa.id} className="bg-slate-800 rounded-lg p-4 border border-slate-700">
-                            <div className="flex justify-between items-start mb-3">
-                              <h4 className="font-semibold text-white">{optativa.nome}</h4>
-                              <span className="bg-purple-600 text-white text-xs px-2 py-1 rounded-full">OPT</span>
+                          <div key={optativa.id} className="bg-slate-800 rounded-lg p-3 sm:p-4 border border-slate-700">
+                            <div className="flex justify-between items-start mb-2 sm:mb-3">
+                              <h4 className="font-semibold text-white text-sm sm:text-base">{optativa.nome}</h4>
+                              <span className="bg-purple-600 text-white text-xs px-1 sm:px-2 py-1 rounded-full">OPT</span>
                             </div>
-                            <div className="text-sm text-slate-400 space-y-1">
+                            <div className="text-xs sm:text-sm text-slate-400 space-y-1">
                               <div>Código: {optativa.codigo}</div>
                               <div>Carga Horária: {optativa.cargaHoraria}h</div>
                               <div>Status: {optativa.status}</div>

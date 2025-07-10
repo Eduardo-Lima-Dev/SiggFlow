@@ -41,11 +41,11 @@ const DisciplinaModal: React.FC<DisciplinaModalProps> = ({ open, onClose, discip
     <Dialog open={open} onClose={onClose} className="fixed z-50 inset-0 overflow-y-auto">
       {/* Overlay opaco */}
       <div className="fixed inset-0 bg-slate-800/80 transition-opacity" aria-hidden="true" />
-      <div className="flex items-center justify-center min-h-screen px-4">
-        <div className="relative bg-slate-900 rounded-2xl shadow-xl max-w-xl w-full mx-auto p-8 z-10">
+      <div className="flex items-center justify-center min-h-screen px-2 sm:px-4">
+        <div className="relative bg-slate-900 rounded-2xl shadow-xl max-w-sm sm:max-w-xl w-full mx-auto p-4 sm:p-8 z-10">
           {/* Botão X para fechar */}
           <button
-            className="absolute top-4 right-4 text-slate-400 hover:text-white text-2xl font-bold focus:outline-none"
+            className="absolute top-2 sm:top-4 right-2 sm:right-4 text-slate-400 hover:text-white text-2xl font-bold focus:outline-none"
             onClick={onClose}
             aria-label="Fechar"
             type="button"
@@ -53,17 +53,17 @@ const DisciplinaModal: React.FC<DisciplinaModalProps> = ({ open, onClose, discip
             ×
           </button>
           {/* Header */}
-          <div className="flex items-center justify-between mb-2 pr-8">
-            <Dialog.Title className="text-2xl font-bold text-white">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-2 pr-8">
+            <Dialog.Title className="text-lg sm:text-2xl font-bold text-white mb-2 sm:mb-0">
               {disciplina.codigo ? `${disciplina.codigo} - ` : ''}{disciplina.nome}
             </Dialog.Title>
             {disciplina.status && (
-              <span className={`ml-4 px-3 py-1 rounded-lg text-xs font-bold uppercase ${STATUS_COLORS[disciplina.status] || 'bg-gray-600 text-white'}`}>
+              <span className={`sm:ml-4 px-2 sm:px-3 py-1 rounded-lg text-xs font-bold uppercase ${STATUS_COLORS[disciplina.status] || 'bg-gray-600 text-white'}`}>
                 {STATUS_LABELS[disciplina.status] || disciplina.status}
               </span>
             )}
           </div>
-          <div className="flex gap-6 text-slate-300 mb-4 text-sm">
+          <div className="flex flex-col sm:flex-row gap-3 sm:gap-6 text-slate-300 mb-4 text-sm">
             <span className="flex items-center gap-1">
               <MdCalendarToday className="inline-block mr-1" />
               {disciplina.semestre}º Semestre
@@ -105,7 +105,7 @@ const DisciplinaModal: React.FC<DisciplinaModalProps> = ({ open, onClose, discip
                 preRequisitos.map(pr => (
                   <label key={pr.codigo} className="flex items-center gap-2">
                     <input type="checkbox" checked={pr.completa} readOnly />
-                    <span className={`font-semibold text-base ${pr.completa ? 'text-green-300' : ''}`}>{pr.nome}</span>
+                    <span className={`font-semibold text-sm sm:text-base ${pr.completa ? 'text-green-300' : ''}`}>{pr.nome}</span>
                   </label>
                 ))
               ) : (
@@ -121,7 +121,7 @@ const DisciplinaModal: React.FC<DisciplinaModalProps> = ({ open, onClose, discip
                 dependentes.map(dep => (
                   <label key={dep.codigo} className="flex items-center gap-2">
                     <input type="checkbox" checked={dep.completa} readOnly />
-                    <span className={`font-semibold text-base ${dep.completa ? 'text-green-300' : ''}`}>{dep.nome}</span>
+                    <span className={`font-semibold text-sm sm:text-base ${dep.completa ? 'text-green-300' : ''}`}>{dep.nome}</span>
                   </label>
                 ))
               ) : (
@@ -130,16 +130,16 @@ const DisciplinaModal: React.FC<DisciplinaModalProps> = ({ open, onClose, discip
             </div>
           </div>
           {/* Botões */}
-          <div className="flex justify-end gap-4 mt-8">
+          <div className="flex flex-col sm:flex-row justify-end gap-2 sm:gap-4 mt-8">
             <button
-              className="bg-slate-600 hover:bg-slate-700 text-white px-6 py-2 rounded font-semibold"
+              className="bg-slate-600 hover:bg-slate-700 text-white px-4 sm:px-6 py-2 rounded font-semibold text-sm sm:text-base"
               onClick={onClose}
               disabled={!!saving}
             >
               Cancelar
             </button>
             <button
-              className="bg-teal-600 hover:bg-teal-700 text-white px-6 py-2 rounded font-semibold"
+              className="bg-teal-600 hover:bg-teal-700 text-white px-4 sm:px-6 py-2 rounded font-semibold text-sm sm:text-base"
               onClick={onSalvar}
               disabled={!!saving}
             >
