@@ -676,6 +676,23 @@ export default function DashboardPage() {
                           ))}
                         </select>
                       </div>
+                      <div>
+                        <label className="text-sm text-slate-400">Selecione o status:</label>
+                        <select
+                          className="w-full rounded p-3 bg-slate-700 text-white mt-2"
+                          value={optativaParaAdicionar.statusSelecionado || 'PENDENTE'}
+                          onChange={e => setOptativaParaAdicionar({
+                            ...optativaParaAdicionar,
+                            statusSelecionado: e.target.value
+                          })}
+                        >
+                          <option value="PENDENTE">Pendente</option>
+                          <option value="EM_ANDAMENTO">Em andamento</option>
+                          <option value="CONCLUIDA">Concluída</option>
+                          <option value="REPROVADA">Reprovada</option>
+                          <option value="ATRASADO">Atrasado</option>
+                        </select>
+                      </div>
                     </div>
                     <div className="flex flex-col sm:flex-row justify-end gap-2 sm:gap-4 mt-4 sm:mt-6">
                       <button className="bg-slate-600 hover:bg-slate-700 text-white px-4 sm:px-6 py-2 rounded font-semibold text-sm sm:text-base" onClick={() => setOptativaParaAdicionar(null)}>Cancelar</button>
@@ -692,7 +709,7 @@ export default function DashboardPage() {
                               nome: optativaParaAdicionar.nome,
                               codigo: optativaParaAdicionar.codigo,
                               cargaHoraria: optativaParaAdicionar.cargaHoraria,
-                              status: 'PENDENTE',
+                              status: optativaParaAdicionar.statusSelecionado || 'PENDENTE',
                               semestre: optativaParaAdicionar.semestreSelecionado,
                               preRequisitos: '',
                               curso: session?.user?.curso ? cursoMapping[session.user.curso as keyof typeof cursoMapping] : '',
