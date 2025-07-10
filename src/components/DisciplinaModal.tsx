@@ -24,6 +24,7 @@ const STATUS_LABELS: Record<string, string> = {
   EM_ANDAMENTO: 'Em andamento',
   PENDENTE: 'Pendente',
   REPROVADA: 'Reprovada',
+  ATRASADO: 'Atrasado',
 };
 
 const STATUS_COLORS: Record<string, string> = {
@@ -31,6 +32,7 @@ const STATUS_COLORS: Record<string, string> = {
   EM_ANDAMENTO: 'bg-yellow-500 text-white',
   PENDENTE: 'bg-gray-500 text-white',
   REPROVADA: 'bg-red-600 text-white',
+  ATRASADO: 'bg-gray-600 text-white',
 };
 
 const DisciplinaModal: React.FC<DisciplinaModalProps> = ({ open, onClose, disciplina, setDisciplina, preRequisitos, dependentes, onSalvar, saving }) => {
@@ -91,6 +93,7 @@ const DisciplinaModal: React.FC<DisciplinaModalProps> = ({ open, onClose, discip
               <option value="CONCLUIDA">Completa</option>
               <option value="EM_ANDAMENTO">Em andamento</option>
               <option value="PENDENTE">Pendente</option>
+              <option value="ATRASADO">Atrasado</option>
               <option value="REPROVADA">Reprovada</option>
             </select>
           </div>

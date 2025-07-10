@@ -3,7 +3,7 @@ import DisciplinaBadge, { DisciplinaBadgeProps } from './DisciplinaBadge';
 
 export interface Disciplina {
   nome: string;
-  status?: 'CONCLUIDA' | 'EM_ANDAMENTO' | 'PENDENTE' | 'REPROVADA';
+  status?: 'CONCLUIDA' | 'EM_ANDAMENTO' | 'PENDENTE' | 'REPROVADA' | 'ATRASADO';
   codigo?: string;
   cargaHoraria?: number;
   obrigatoria?: boolean;
@@ -16,7 +16,7 @@ export interface SemesterColumnProps {
   onDisciplinaClick?: (disciplina: Disciplina) => void;
 }
 
-const statusOrder = ['CONCLUIDA', 'EM_ANDAMENTO', 'PENDENTE', 'REPROVADA'];
+const statusOrder = ['CONCLUIDA', 'EM_ANDAMENTO', 'PENDENTE', 'ATRASADO', 'REPROVADA'];
 
 const SemesterColumn: React.FC<SemesterColumnProps> = ({ numero, obrigatorias, disciplinas, onDisciplinaClick }) => {
   // Conta obrigatórias e optativas

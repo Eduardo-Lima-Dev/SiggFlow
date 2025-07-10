@@ -2,7 +2,7 @@ import React from 'react';
 
 export interface DisciplinaBadgeProps {
   nome: string;
-  status: 'CONCLUIDA' | 'EM_ANDAMENTO' | 'PENDENTE' | 'REPROVADA';
+  status: 'CONCLUIDA' | 'EM_ANDAMENTO' | 'PENDENTE' | 'REPROVADA' | 'ATRASADO';
   codigo: string;
   cargaHoraria: number;
   obrigatoria?: boolean;
@@ -14,6 +14,7 @@ const statusStyles = {
   EM_ANDAMENTO: 'bg-[#f4b400] text-white',
   PENDENTE: 'bg-yellow-700 text-yellow-200',
   REPROVADA: 'bg-red-700 text-red-200',
+  ATRASADO: 'bg-gray-600 text-gray-200',
 };
 
 const DisciplinaBadge: React.FC<DisciplinaBadgeProps> = ({ nome, status, codigo, cargaHoraria, obrigatoria, onClick }) => {

@@ -8,6 +8,7 @@ const STATUS = [
   { value: "CONCLUIDA", label: "Concluída" },
   { value: "EM_ANDAMENTO", label: "Em andamento" },
   { value: "PENDENTE", label: "Pendente" },
+  { value: "ATRASADO", label: "Atrasado" },
   { value: "REPROVADA", label: "Reprovada" },
 ];
 

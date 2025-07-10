@@ -28,7 +28,7 @@ type DisciplinasAPIResponse = {
 export interface Disciplina {
   id: string;
   nome: string;
-  status?: 'CONCLUIDA' | 'EM_ANDAMENTO' | 'PENDENTE' | 'REPROVADA';
+  status?: 'CONCLUIDA' | 'EM_ANDAMENTO' | 'PENDENTE' | 'REPROVADA' | 'ATRASADO';
 }
 
 const cursoMapping = {
@@ -280,6 +280,10 @@ export default function DashboardPage() {
                     <div className="flex items-center gap-2">
                       <span className="inline-block w-5 h-5 rounded bg-yellow-700 border border-yellow-800"></span>
                       <span className="text-sm text-slate-200">Pendente</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="inline-block w-5 h-5 rounded bg-gray-600 border border-gray-700"></span>
+                      <span className="text-sm text-slate-200">Atrasado</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <span className="inline-block w-5 h-5 rounded bg-red-700 border border-red-800"></span>
