@@ -74,6 +74,8 @@ export default function DashboardPage() {
   const [optativaParaAdicionar, setOptativaParaAdicionar] = useState<any>(null);
   const [sidebarAberta, setSidebarAberta] = useState(true);
   const [termoBusca, setTermoBusca] = useState('');
+  const [modalSemestre, setModalSemestre] = useState<{semestre: string, disciplinas: any[]} | null>(null);
+  const [confirmandoSemestre, setConfirmandoSemestre] = useState(false);
 
   // Controla o estado do sidebar baseado no tamanho da tela
   useEffect(() => {
@@ -561,6 +563,13 @@ export default function DashboardPage() {
                     setModalDependentes(dependentes);
                     setModalOpen(true);
                   }}
+                  onCardClick={() => {
+                    const disciplinasSemestre = [
+                      ...(disciplinas?.completas[sem] || []),
+                      ...(disciplinas?.pendentes[sem] || [])
+                    ];
+                    setModalSemestre({ semestre: sem, disciplinas: disciplinasSemestre });
+                  }}
                 />
               ))}
             </div>
@@ -930,6 +939,62 @@ export default function DashboardPage() {
           )}
         </main>
       </div>
+
+        {/* Modal de confirmação para concluir todas as matérias do semestre */}
+        <Dialog open={!!modalSemestre} onClose={() => setModalSemestre(null)} className="fixed z-50 inset-0 overflow-y-auto">
+          <div className="fixed inset-0 bg-slate-800/80 transition-opacity" aria-hidden="true" />
+          <div className="flex items-center justify-center min-h-screen px-2 sm:px-4">
+            <div className="relative bg-slate-900 rounded-2xl shadow-xl max-w-sm w-full mx-auto p-6 z-10">
+              <Dialog.Title className="text-lg font-bold text-white mb-4">Concluir todas as matérias?</Dialog.Title>
+              <p className="text-slate-300 mb-6">Deseja marcar todas as matérias do <b>{modalSemestre?.semestre}º semestre</b> como <b>concluídas</b>? Esta ação não pode ser desfeita.</p>
+              <div className="flex justify-end gap-3 mt-6">
+                <button className="px-4 py-2 rounded bg-slate-600 hover:bg-slate-700 text-white font-semibold" onClick={() => setModalSemestre(null)}>Cancelar</button>
+                <button
+                  className="px-4 py-2 rounded bg-green-600 hover:bg-green-700 text-white font-semibold disabled:opacity-50"
+                  disabled={confirmandoSemestre}
+                  onClick={async () => {
+                    if (!modalSemestre) return;
+                    setConfirmandoSemestre(true);
+                    try {
+                      await fetch('/api/disciplinas/progresso', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(
+                          modalSemestre.disciplinas.map((d: any) => ({
+                            disciplinaId: d.id,
+                            status: 'CONCLUIDA',
+                            semestre: d.semestre
+                          }))
+                        ),
+                      });
+                      toast.success(`Todas as matérias do ${modalSemestre.semestre}º semestre foram marcadas como concluídas!`);
+                      setModalSemestre(null);
+                      setLoading(true);
+                      fetch('/api/disciplinas')
+                        .then(res => res.json())
+                        .then((data: DisciplinasAPIResponse & { error?: string }) => {
+                          if (data.error) {
+                            toast.error(data.error);
+                            setErro(data.error);
+                            setDisciplinas(null);
+                          } else {
+                            setDisciplinas(data);
+                          }
+                        })
+                        .catch(() => {
+                          toast.error('Erro ao buscar disciplinas');
+                          setErro('Erro ao buscar disciplinas');
+                        })
+                        .finally(() => setLoading(false));
+                    } finally {
+                      setConfirmandoSemestre(false);
+                    }
+                  }}
+                >Sim, concluir todas</button>
+              </div>
+            </div>
+          </div>
+        </Dialog>
     </ProtectedRoute>
   );
 }

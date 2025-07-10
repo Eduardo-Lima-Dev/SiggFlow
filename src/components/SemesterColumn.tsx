@@ -14,11 +14,12 @@ export interface SemesterColumnProps {
   obrigatorias: number;
   disciplinas: Disciplina[];
   onDisciplinaClick?: (disciplina: Disciplina) => void;
+  onCardClick?: () => void;
 }
 
 const statusOrder = ['CONCLUIDA', 'EM_ANDAMENTO', 'PENDENTE', 'ATRASADO', 'REPROVADA'];
 
-const SemesterColumn: React.FC<SemesterColumnProps> = ({ numero, obrigatorias, disciplinas, onDisciplinaClick }) => {
+const SemesterColumn: React.FC<SemesterColumnProps> = ({ numero, obrigatorias, disciplinas, onDisciplinaClick, onCardClick }) => {
   // Conta obrigatórias e optativas
   const obrigatoriasCount = disciplinas.filter(d => d.obrigatoria !== false).length;
   const optativasCount = disciplinas.filter(d => d.obrigatoria === false).length;
@@ -26,7 +27,10 @@ const SemesterColumn: React.FC<SemesterColumnProps> = ({ numero, obrigatorias, d
   return (
     <div className="relative flex flex-col lg:flex-row min-w-full lg:min-w-[260px] mx-1 lg:mx-2 items-stretch">
       {/* Card do semestre */}
-      <div className="relative z-10 flex flex-col justify-center px-4 lg:px-6 py-3 lg:py-5 min-w-full lg:min-w-[220px] bg-white rounded-xl shadow-md overflow-hidden mb-4 lg:mb-0 lg:mr-4">
+      <div
+        className="relative z-10 flex flex-col justify-center px-4 lg:px-6 py-3 lg:py-5 min-w-full lg:min-w-[220px] bg-white rounded-xl shadow-md overflow-hidden mb-4 lg:mb-0 lg:mr-4 cursor-pointer hover:bg-slate-100 transition"
+        onClick={onCardClick}
+      >
         {/* Faixa inclinada no topo direito */}
         <div className="absolute right-0 top-0 w-[60%] h-6 lg:h-8 bg-slate-100" style={{transform: 'skew(-15deg)', zIndex: 1}} />
         <div className="relative z-10 px-4 lg:px-6 pt-3 lg:pt-5 pb-2">
