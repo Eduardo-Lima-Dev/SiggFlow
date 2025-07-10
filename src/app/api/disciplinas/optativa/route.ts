@@ -53,26 +53,54 @@ export async function POST(req: Request) {
     }
     
     // Cria disciplina optativa se não existir
-    let disciplina = await prisma.disciplina.findFirst({ where: { codigo } });
+    let disciplina = await prisma.disciplina.findFirst({ 
+      where: { 
+        codigo,
+        curriculoId: curriculo.id,
+        obrigatoria: false
+      } 
+    });
+    console.log('Disciplina existente encontrada no currículo:', disciplina);
+    
     if (!disciplina) {
-      disciplina = await prisma.disciplina.create({
-        data: {
-          nome,
-          codigo,
-          cargaHoraria: Number(cargaHoraria),
-          semestre: Number(semestre),
-          obrigatoria: false,
-          preRequisitos: '',
-          cursoId: cursoObj.id,
-          curriculoId: curriculo.id,
-        },
-      });
-      console.log('Disciplina optativa criada:', disciplina);
+      // Se não encontrou no currículo, busca em qualquer lugar
+      disciplina = await prisma.disciplina.findFirst({ where: { codigo } });
+      console.log('Disciplina encontrada em qualquer lugar:', disciplina);
+      
+      if (!disciplina) {
+        // Cria nova disciplina
+        disciplina = await prisma.disciplina.create({
+          data: {
+            nome,
+            codigo,
+            cargaHoraria: Number(cargaHoraria),
+            semestre: Number(semestre),
+            obrigatoria: false,
+            preRequisitos: '',
+            cursoId: cursoObj.id,
+            curriculoId: curriculo.id,
+          },
+        });
+        console.log('Disciplina optativa criada:', disciplina);
+      } else {
+        // Atualiza a disciplina existente para associar ao currículo correto
+        disciplina = await prisma.disciplina.update({
+          where: { id: disciplina.id },
+          data: {
+            curriculoId: curriculo.id,
+            cursoId: cursoObj.id,
+          },
+        });
+        console.log('Disciplina optativa atualizada para o currículo:', disciplina);
+      }
     } else {
-      console.log('Disciplina optativa já existia:', disciplina);
+      console.log('Disciplina optativa já existia no currículo:', disciplina);
     }
+    
+    console.log('Disciplina final para progresso:', disciplina);
+    
     // Cria progresso do usuário para a disciplina
-    await prisma.userDisciplinaProgresso.upsert({
+    const progresso = await prisma.userDisciplinaProgresso.upsert({
       where: {
         userId_disciplinaId: {
           userId,
@@ -90,6 +118,7 @@ export async function POST(req: Request) {
         semestre: Number(semestre),
       },
     });
+    console.log('Progresso criado/atualizado:', progresso);
     console.log('Progresso criado para userId:', userId, 'disciplinaId:', disciplina.id);
     return NextResponse.json({ message: 'Optativa adicionada com sucesso' });
   } catch (error) {

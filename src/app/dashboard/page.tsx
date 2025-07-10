@@ -101,6 +101,7 @@ export default function DashboardPage() {
           setErro(data.error);
           setDisciplinas(null);
         } else {
+          console.log('Disciplinas carregadas:', data);
           setDisciplinas(data);
         }
       })
@@ -598,6 +599,7 @@ export default function DashboardPage() {
                                 setErro(data.error);
                                 setDisciplinas(null);
                               } else {
+                                console.log('Disciplinas recarregadas após adicionar optativa:', data);
                                 setDisciplinas(data);
                               }
                             })

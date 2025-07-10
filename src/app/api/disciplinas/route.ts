@@ -83,24 +83,41 @@ export async function GET(req: Request) {
 
   // Busca as optativas que o usuário adicionou ao seu progresso
   const userEmail = session.user.email as string;
+  console.log('Buscando optativas para usuário:', userEmail);
+  console.log('Currículo ID:', curriculo.id);
+  
+  // Primeiro, busca todas as optativas do currículo
+  const todasOptativas = await prisma.disciplina.findMany({
+    where: {
+      curriculoId: curriculo.id,
+      obrigatoria: false
+    }
+  });
+  console.log('Todas as optativas do currículo:', todasOptativas);
+  
+  // Depois, busca o progresso do usuário nessas optativas
   const optativasAdicionadas = await prisma.userDisciplinaProgresso.findMany({
     where: {
       user: { email: userEmail },
-      disciplina: {
-        curriculoId: curriculo.id,
-        obrigatoria: false
-      }
+      disciplinaId: { in: todasOptativas.map(d => d.id) }
     },
     include: {
       disciplina: true
     }
   });
+  
+  console.log('Optativas encontradas:', optativasAdicionadas.length);
+  console.log('Detalhes das optativas:', optativasAdicionadas);
 
   // Combina obrigatórias com optativas adicionadas
   const disciplinas = [
     ...disciplinasObrigatorias,
     ...optativasAdicionadas.map(op => op.disciplina)
   ];
+  
+  console.log('Total de disciplinas (obrigatórias + optativas):', disciplinas.length);
+  console.log('Disciplinas obrigatórias:', disciplinasObrigatorias.length);
+  console.log('Optativas adicionadas:', optativasAdicionadas.length);
 
   // Busca o progresso do usuário nessas disciplinas
   const progresso = await prisma.userDisciplinaProgresso.findMany({
@@ -120,20 +137,30 @@ export async function GET(req: Request) {
   const pendentes: Record<number, any[]> = {};
 
   for (const disc of disciplinas) {
+    console.log('Processando disciplina:', disc.nome, 'semestre:', disc.semestre, 'status:', progressoMap.get(disc.id) || 'PENDENTE');
     const status = progressoMap.get(disc.id) || 'PENDENTE';
     const discWithStatus = { ...disc, status };
     // Mostra todas as disciplinas (obrigatórias e optativas)
     if (status === 'CONCLUIDA') {
       if (!completas[disc.semestre]) completas[disc.semestre] = [];
       completas[disc.semestre].push(discWithStatus);
+      console.log('Adicionada às completas do semestre', disc.semestre);
     } else {
       if (!pendentes[disc.semestre]) pendentes[disc.semestre] = [];
       pendentes[disc.semestre].push(discWithStatus);
+      console.log('Adicionada às pendentes do semestre', disc.semestre);
     }
   }
 
   console.log('Dashboard disciplinas completas:', completas);
   console.log('Dashboard disciplinas pendentes:', pendentes);
+  
+  // Log adicional para verificar os semestres
+  const todosSemestres = new Set([
+    ...Object.keys(completas).map(Number),
+    ...Object.keys(pendentes).map(Number)
+  ]);
+  console.log('Todos os semestres encontrados:', Array.from(todosSemestres).sort((a, b) => a - b));
 
   return NextResponse.json({
     curriculo: {
