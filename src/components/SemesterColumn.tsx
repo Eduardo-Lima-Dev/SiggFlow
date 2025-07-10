@@ -32,7 +32,7 @@ const SemesterColumn: React.FC<SemesterColumnProps> = ({ numero, obrigatorias, d
         <div className="relative z-10 px-4 lg:px-6 pt-3 lg:pt-5 pb-2">
           <div className="text-lg lg:text-2xl font-extrabold text-slate-700">{numero}º SEMESTRE</div>
           <div className="text-xs lg:text-sm font-semibold text-slate-500 mt-1">
-            ({obrigatoriasCount.toString().padStart(2, '0')} OBRIGATÓRIAS, {optativasCount.toString().padStart(2, '0')} OPTATIVAS)
+            ({obrigatoriasCount} OBRIGATÓRIAS, {optativasCount} OPTATIVAS)
           </div>
         </div>
       </div>
