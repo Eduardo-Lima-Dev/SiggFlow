@@ -83,18 +83,30 @@ export async function POST(req: Request) {
         });
         console.log('Disciplina optativa criada:', disciplina);
       } else {
-        // Atualiza a disciplina existente para associar ao currículo correto
+        // Atualiza a disciplina existente para associar ao currículo correto e usar o semestre selecionado
         disciplina = await prisma.disciplina.update({
           where: { id: disciplina.id },
           data: {
             curriculoId: curriculo.id,
             cursoId: cursoObj.id,
+            semestre: Number(semestre), // Usa o semestre selecionado pelo usuário
           },
         });
-        console.log('Disciplina optativa atualizada para o currículo:', disciplina);
+        console.log('Disciplina optativa atualizada para o currículo com semestre:', disciplina);
       }
     } else {
-      console.log('Disciplina optativa já existia no currículo:', disciplina);
+      // Se já existe no currículo, atualiza o semestre se for diferente
+      if (disciplina.semestre !== Number(semestre)) {
+        disciplina = await prisma.disciplina.update({
+          where: { id: disciplina.id },
+          data: {
+            semestre: Number(semestre), // Usa o semestre selecionado pelo usuário
+          },
+        });
+        console.log('Disciplina optativa atualizada com novo semestre:', disciplina);
+      } else {
+        console.log('Disciplina optativa já existia no currículo com semestre correto:', disciplina);
+      }
     }
     
     console.log('Disciplina final para progresso:', disciplina);
