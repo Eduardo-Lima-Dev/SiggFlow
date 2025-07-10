@@ -31,7 +31,9 @@ const DisciplinaBadge: React.FC<DisciplinaBadgeProps> = ({ nome, status, codigo,
           OPT
         </div>
       )}
-      <div className="font-bold text-white text-xs lg:text-base mb-1">{nome}</div>
+      <div className="font-bold text-white text-xs lg:text-base mb-1 line-clamp-2 break-words max-w-full">
+        {nome}
+      </div>
       <div className="text-xs text-white font-normal mt-1">cód.: {codigo} | {cargaHoraria} c/h</div>
     </div>
   );
