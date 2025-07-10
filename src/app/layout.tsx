@@ -5,6 +5,7 @@ import Providers from "@/components/Providers";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { redirect } from "next/navigation";
+import { Toaster } from 'react-hot-toast';
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -37,6 +38,7 @@ export default async function RootLayout({
       >
         <Providers>
         {children}
+        <Toaster position="top-right" />
         </Providers>
       </body>
     </html>

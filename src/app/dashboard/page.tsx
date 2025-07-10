@@ -8,6 +8,7 @@ import { Switch, Dialog } from '@headlessui/react';
 import { PlusIcon, FunnelIcon, ChevronRightIcon, ChevronLeftIcon } from '@heroicons/react/24/outline';
 import SemesterColumn from '@/components/SemesterColumn';
 import DisciplinaModal from '@/components/DisciplinaModal';
+import toast from 'react-hot-toast';
 
 const cursoLabels: Record<string, string> = {
   CIENCIA_COMPUTACAO: 'Ciência da Computação',
@@ -99,14 +100,17 @@ export default function DashboardPage() {
       .then(res => res.json())
       .then((data: DisciplinasAPIResponse & { error?: string }) => {
         if (data.error) {
+          toast.error(data.error);
           setErro(data.error);
           setDisciplinas(null);
         } else {
-          console.log('Disciplinas carregadas:', data);
           setDisciplinas(data);
         }
       })
-      .catch(() => setErro('Erro ao buscar disciplinas'))
+      .catch(() => {
+        toast.error('Erro ao buscar disciplinas');
+        setErro('Erro ao buscar disciplinas');
+      })
       .finally(() => setLoading(false));
   }, [status]);
 
@@ -117,12 +121,12 @@ export default function DashboardPage() {
       const response = await fetch('/api/disciplinas/optativas');
       const data = await response.json();
       if (data.error) {
-        console.error('Erro ao carregar optativas:', data.error);
+        toast.error('Erro ao carregar optativas: ' + data.error);
       } else {
         setOptativas(data.optativas);
       }
     } catch (error) {
-      console.error('Erro ao carregar optativas:', error);
+      toast.error('Erro ao carregar optativas');
     } finally {
       setLoadingOptativas(false);
     }
@@ -256,19 +260,24 @@ export default function DashboardPage() {
         ]),
       });
       setModalOpen(false);
+      toast.success(`Progresso da disciplina '${modalDisciplina.nome}' salvo como ${modalDisciplina.status}${modalDisciplina.semestre ? ` no ${modalDisciplina.semestre}º semestre` : ''}.`);
       // Recarregar disciplinas
       setLoading(true);
       fetch('/api/disciplinas')
         .then(res => res.json())
         .then((data: DisciplinasAPIResponse & { error?: string }) => {
           if (data.error) {
+            toast.error(`Erro ao recarregar disciplinas: ${data.error}`);
             setErro(data.error);
             setDisciplinas(null);
           } else {
             setDisciplinas(data);
           }
         })
-        .catch(() => setErro('Erro ao buscar disciplinas'))
+        .catch(() => {
+          toast.error('Erro ao recarregar disciplinas.');
+          setErro('Erro ao buscar disciplinas');
+        })
         .finally(() => setLoading(false));
     } finally {
       setSaving(false);
@@ -622,14 +631,18 @@ export default function DashboardPage() {
                             .then(res => res.json())
                             .then((data: DisciplinasAPIResponse & { error?: string }) => {
                               if (data.error) {
+                                toast.error(data.error);
                                 setErro(data.error);
                                 setDisciplinas(null);
                               } else {
-                                console.log('Disciplinas recarregadas após adicionar optativa:', data);
+                                toast.success('Optativa adicionada com sucesso!');
                                 setDisciplinas(data);
                               }
                             })
-                            .catch(() => setErro('Erro ao buscar disciplinas'))
+                            .catch(() => {
+                              toast.error('Erro ao buscar disciplinas');
+                              setErro('Erro ao buscar disciplinas');
+                            })
                             .finally(() => setLoading(false));
                           
                           // Fecha o modal após salvar
@@ -702,7 +715,7 @@ export default function DashboardPage() {
                         onClick={async () => {
                           if (!optativaParaAdicionar.semestreSelecionado) return;
                           
-                          await fetch('/api/disciplinas/optativa', {
+                          const res = await fetch('/api/disciplinas/optativa', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({
@@ -715,7 +728,12 @@ export default function DashboardPage() {
                               curso: session?.user?.curso ? cursoMapping[session.user.curso as keyof typeof cursoMapping] : '',
                             }),
                           });
-                          
+                          const data = await res.json();
+                          if (data.error) {
+                            toast.error(`Erro ao adicionar optativa: ${data.error}`);
+                          } else {
+                            toast.success(`Optativa '${optativaParaAdicionar.nome}' adicionada ao ${optativaParaAdicionar.semestreSelecionado}º semestre com status ${optativaParaAdicionar.statusSelecionado || 'PENDENTE'}.`);
+                          }
                           setOptativaParaAdicionar(null);
                           await carregarOptativas();
                           setLoading(true);
@@ -723,16 +741,19 @@ export default function DashboardPage() {
                             .then(res => res.json())
                             .then((data: DisciplinasAPIResponse & { error?: string }) => {
                               if (data.error) {
+                                toast.error(`Erro ao recarregar disciplinas: ${data.error}`);
                                 setErro(data.error);
                                 setDisciplinas(null);
                               } else {
+                                toast.success('Disciplinas recarregadas com sucesso.');
                                 setDisciplinas(data);
                               }
                             })
-                            .catch(() => setErro('Erro ao buscar disciplinas'))
+                            .catch(() => {
+                              toast.error('Erro ao recarregar disciplinas.');
+                              setErro('Erro ao buscar disciplinas');
+                            })
                             .finally(() => setLoading(false));
-                          
-                          // Fecha o modal após salvar
                           setModalOptativaOpen(false);
                         }}
                       >
@@ -785,13 +806,17 @@ export default function DashboardPage() {
                               .then(res => res.json())
                               .then((data: DisciplinasAPIResponse & { error?: string }) => {
                                 if (data.error) {
+                                  toast.error(data.error);
                                   setErro(data.error);
                                   setDisciplinas(null);
                                 } else {
                                   setDisciplinas(data);
                                 }
                               })
-                              .catch(() => setErro('Erro ao buscar disciplinas'))
+                              .catch(() => {
+                                toast.error('Erro ao buscar disciplinas');
+                                setErro('Erro ao buscar disciplinas');
+                              })
                               .finally(() => setLoading(false));
                           }}
                         >
