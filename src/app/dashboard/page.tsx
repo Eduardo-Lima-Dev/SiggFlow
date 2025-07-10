@@ -72,6 +72,7 @@ export default function DashboardPage() {
   const [optativaSelecionada, setOptativaSelecionada] = useState<any>(null);
   const [optativaParaAdicionar, setOptativaParaAdicionar] = useState<any>(null);
   const [sidebarAberta, setSidebarAberta] = useState(true);
+  const [termoBusca, setTermoBusca] = useState('');
 
   // Controla o estado do sidebar baseado no tamanho da tela
   useEffect(() => {
@@ -126,6 +127,26 @@ export default function DashboardPage() {
       setLoadingOptativas(false);
     }
   };
+
+  // Função para filtrar optativas baseada no termo de busca
+  const optativasFiltradas = optativas.filter(optativa => {
+    if (!termoBusca) return true;
+    const termo = termoBusca.toLowerCase();
+    return (
+      optativa.nome.toLowerCase().includes(termo) ||
+      optativa.codigo.toLowerCase().includes(termo)
+    );
+  });
+
+  // Remover duplicidade: se houver mais de uma optativa com o mesmo código, mostrar só a que já foi adicionada (adicionada=true), senão mostrar a primeira
+  const optativasUnicas = Object.values(
+    optativasFiltradas.reduce((acc, opt) => {
+      if (!acc[opt.codigo] || opt.adicionada) {
+        acc[opt.codigo] = opt;
+      }
+      return acc;
+    }, {} as Record<string, any>) // Corrigido para 'any' para evitar erro de 'unknown'
+  );
 
   if (status === 'loading' || loading) {
     return (
@@ -335,6 +356,7 @@ export default function DashboardPage() {
                   setModoAdicionar(false);
                   setOptativaSelecionada(null);
                   setOptativaParaAdicionar(null);
+                  setTermoBusca('');
                 }}
               >
                 <span className="flex items-center gap-2">
@@ -481,6 +503,7 @@ export default function DashboardPage() {
                       setModoAdicionar(false);
                       setOptativaSelecionada(null);
                       setOptativaParaAdicionar(null);
+                      setTermoBusca('');
                     }}
                   >
                     <PlusIcon className="h-5 w-5" />
@@ -532,7 +555,10 @@ export default function DashboardPage() {
               {/* Overlay opaco */}
               <div className="fixed inset-0 bg-slate-800/80 transition-opacity" aria-hidden="true" />
               <div className="relative bg-slate-900 rounded-2xl shadow-xl max-w-4xl w-full mx-auto p-4 sm:p-8 z-10 max-h-[80vh] overflow-y-auto">
-                <button className="absolute top-2 sm:top-4 right-2 sm:right-4 text-slate-400 hover:text-white text-2xl font-bold focus:outline-none" onClick={() => setModalOptativaOpen(false)}>×</button>
+                <button className="absolute top-2 sm:top-4 right-2 sm:right-4 text-slate-400 hover:text-white text-2xl font-bold focus:outline-none" onClick={() => {
+                  setModalOptativaOpen(false);
+                  setTermoBusca('');
+                }}>×</button>
                 
                 <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 sm:mb-6 gap-4 sm:gap-0">
                   <h2 className="text-xl sm:text-2xl font-bold text-white">Gerenciar Optativas</h2>
@@ -767,6 +793,33 @@ export default function DashboardPage() {
                   // Lista de optativas existentes
                   <div>
                     <h3 className="text-lg font-semibold text-white mb-4">Optativas Disponíveis</h3>
+                    
+                    {/* Campo de busca */}
+                    <div className="mb-4">
+                      <div className="relative">
+                        <input
+                          type="text"
+                          placeholder="Buscar por nome ou código..."
+                          value={termoBusca}
+                          onChange={(e) => setTermoBusca(e.target.value)}
+                          className="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                        />
+                        {termoBusca && (
+                          <button
+                            onClick={() => setTermoBusca('')}
+                            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-white"
+                          >
+                            ×
+                          </button>
+                        )}
+                      </div>
+                      {termoBusca && (
+                        <div className="mt-2 text-sm text-slate-400">
+                          {optativasFiltradas.length} resultado(s) encontrado(s)
+                        </div>
+                      )}
+                    </div>
+                    
                     {loadingOptativas ? (
                       <div className="text-center py-8">
                         <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-indigo-500 mx-auto"></div>
@@ -774,7 +827,7 @@ export default function DashboardPage() {
                       </div>
                     ) : (
                       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
-                        {optativas.map((optativa) => (
+                        {optativasUnicas.map((optativa: any) => (
                           <div key={optativa.id} className="bg-slate-800 rounded-lg p-3 sm:p-4 border border-slate-700">
                             <div className="flex justify-between items-start mb-2 sm:mb-3">
                               <h4 className="font-semibold text-white text-sm sm:text-base">{optativa.nome}</h4>
