@@ -18,13 +18,11 @@ export async function POST(req: Request) {
 
     const user = await prisma.user.findUnique({ where: { email } });
     if (!user) {
-      // Não revela se o email existe
       return NextResponse.json({ message: "Se o email estiver cadastrado, você receberá instruções." });
     }
 
-    // Gera token seguro
     const token = randomBytes(32).toString("hex");
-    const expires = new Date(Date.now() + 1000 * 60 * 60); // 1 hora
+    const expires = new Date(Date.now() + 1000 * 60 * 60);
 
     await prisma.passwordResetToken.create({
       data: {
@@ -39,7 +37,6 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ message: "Se o email estiver cadastrado, você receberá instruções." });
   } catch (error) {
-    console.error("Erro ao solicitar redefinição de senha:", error);
     return NextResponse.json({ message: "Erro interno ao enviar email de redefinição de senha." }, { status: 500 });
   }
 } 

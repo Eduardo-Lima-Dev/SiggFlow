@@ -3,7 +3,6 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 
-// Mapeamento entre o enum do usuário e os códigos dos cursos no banco
 const cursoMapping: Record<string, string> = {
   ENGENHARIA_SOFTWARE: 'ES',
   CIENCIA_COMPUTACAO: 'CC',
@@ -19,7 +18,6 @@ export async function GET(req: Request) {
     return NextResponse.json({ error: 'Não autenticado' }, { status: 401 });
   }
 
-  // Busca o curso do usuário
   const userCurso = session.user.curso;
   const anoIngresso = session.user.anoIngresso;
   
@@ -31,7 +29,6 @@ export async function GET(req: Request) {
     return NextResponse.json({ error: 'Ano de ingresso não informado' }, { status: 400 });
   }
 
-  // Busca o código do curso usando o mapeamento
   const codigoCurso = cursoMapping[userCurso];
   
   if (!codigoCurso) {
@@ -47,7 +44,6 @@ export async function GET(req: Request) {
     return NextResponse.json({ error: 'Curso não encontrado' }, { status: 404 });
   }
 
-  // Seleciona o currículo correto baseado no ano de ingresso
   const curriculosOrdenados = curso.curriculos.sort((a, b) => a.ano - b.ano);
   let curriculo = null;
   if (curriculosOrdenados.length === 1) {
@@ -66,7 +62,6 @@ export async function GET(req: Request) {
     return NextResponse.json({ error: 'Currículo não encontrado' }, { status: 404 });
   }
 
-  // Busca todas as disciplinas optativas do currículo
   const optativas = await prisma.disciplina.findMany({
     where: { 
       curriculoId: curriculo.id,
@@ -75,7 +70,6 @@ export async function GET(req: Request) {
     orderBy: [{ nome: 'asc' }],
   });
 
-  // Busca o progresso do usuário nessas optativas
   const userEmail = session.user.email as string;
   const progresso = await prisma.userDisciplinaProgresso.findMany({
     where: {
@@ -90,7 +84,6 @@ export async function GET(req: Request) {
   });
   const progressoMap = new Map(progresso.map(p => [p.disciplinaId, { status: p.status, semestre: p.semestre }]));
 
-  // Adiciona informações de progresso às optativas
   const optativasComProgresso = optativas.map(opt => {
     const progresso = progressoMap.get(opt.id);
     return {

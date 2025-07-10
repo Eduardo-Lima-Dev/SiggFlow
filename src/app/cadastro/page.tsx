@@ -56,7 +56,6 @@ export default function CadastroPage() {
         throw new Error(data.error || "Erro no cadastro");
       }
 
-      // Redirecionar para login após cadastro bem-sucedido
       router.push("/login?message=Cadastro realizado com sucesso! Faça login para continuar.");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Erro no cadastro");

@@ -25,7 +25,6 @@ export default function ProgressoPage() {
   useEffect(() => {
     if (status === "loading") return;
     if (!session) return;
-    // Busca o usuário atualizado do banco
     setLoadingUser(true);
     fetch("/api/me")
       .then(res => res.json())

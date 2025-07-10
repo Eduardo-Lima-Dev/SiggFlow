@@ -10,7 +10,6 @@ export async function POST(req: Request) {
   }
 
   const userId = session.user.id;
-  console.log('userId recebido na sessão:', userId);
   let data;
   try {
     data = await req.json();
@@ -22,7 +21,6 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Formato inválido' }, { status: 400 });
   }
 
-  // data: [{ disciplinaId, semestre, status }]
   try {
     const upserts = await Promise.all(
       data.map(async ({ disciplinaId, semestre, status }) => {
@@ -46,11 +44,9 @@ export async function POST(req: Request) {
         });
       })
     );
-    // Marca o usuário como onboarding concluído
     await prisma.user.update({ where: { id: userId }, data: { completedOnboarding: true } });
     return NextResponse.json({ message: 'Progresso salvo com sucesso', progresso: upserts });
   } catch (error) {
-    console.error('Erro ao salvar progresso:', error);
     return NextResponse.json({ error: 'Erro ao salvar progresso' }, { status: 500 });
   }
 } 

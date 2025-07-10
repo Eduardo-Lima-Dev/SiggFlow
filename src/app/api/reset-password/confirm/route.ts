@@ -26,7 +26,6 @@ export async function POST(req: Request) {
     data: { password: hashed },
   });
 
-  // Invalida o token
   await prisma.passwordResetToken.delete({ where: { token } });
 
   return NextResponse.json({ message: "Senha redefinida com sucesso!" });

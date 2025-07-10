@@ -12,7 +12,6 @@ const cursos = [
   "Sistemas de Informação"
 ];
 
-// Mapeamento de código para enum do curso
 const codigoToEnum: Record<string, string> = {
   CC: "CIENCIA_COMPUTACAO",
   DD: "DESIGN_DIGITAL",
@@ -479,14 +478,11 @@ export default function AuthPage() {
     <Suspense fallback={<div>Carregando...</div>}>
       <div className="min-h-screen w-full flex items-center justify-center bg-[#131a1b] p-4">
         <div className="w-full max-w-5xl flex flex-col lg:flex-row rounded-2xl overflow-hidden shadow-lg border border-[#222b2c] bg-[#131a1b]" style={{ minHeight: 540 }}>
-          {/* Lado esquerdo: Logo */}
           <div className="flex flex-col items-center justify-center w-full lg:w-1/2 bg-[#131a1b] border-b lg:border-b-0 lg:border-r border-[#222b2c] p-6 lg:p-8">
             <div className="rounded-full w-48 h-48 lg:w-68 lg:h-68 flex items-center justify-center mb-4 overflow-hidden">
               <img src="/logo.png" alt="Logo do sistema" className="object-contain w-full h-full" />
             </div>
-            {/* <span className="text-2xl font-bold text-white mt-2">Logo</span> */}
           </div>
-          {/* Lado direito: Formulário */}
           <div className="flex flex-col justify-center w-full lg:w-1/2 p-6 lg:p-10 bg-[#181f20] rounded-b-2xl lg:rounded-b-none lg:rounded-r-2xl">
             <div className="w-full max-w-md mx-auto">
               {showReset ? (

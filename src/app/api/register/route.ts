@@ -16,23 +16,17 @@ const registerSchema = z.object({
     "SISTEMAS_INFORMACAO"
   ]),
   anoIngresso: z.union([z.string().regex(/^\d{4}$/), z.number().int().min(2000)]),
-  // semestre: z.number().min(1).max(10, "Semestre deve estar entre 1 e 10")
 });
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    console.log('Body recebido no cadastro:', body);
-    
-    // const { name, email, password, curso, semestre } = registerSchema.parse(body);
-    const { name, email, password, curso, anoIngresso } = registerSchema.parse(body);
-    console.log('Dados validados:', { name, email, password, curso, anoIngresso });
 
-    // Verificar se o usuário já existe
+    const { name, email, password, curso, anoIngresso } = registerSchema.parse(body);
+
     const existingUser = await prisma.user.findUnique({
       where: { email }
     });
-    console.log('Usuário existente:', existingUser);
 
     if (existingUser) {
       return NextResponse.json(
@@ -41,11 +35,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Hash da senha
     const hashedPassword = await bcrypt.hash(password, 12);
-    console.log('Senha hash gerada');
 
-    // Criar usuário
     const user = await prisma.user.create({
       data: {
         name,
@@ -53,12 +44,9 @@ export async function POST(request: NextRequest) {
         password: hashedPassword,
         curso,
         anoIngresso: typeof anoIngresso === 'string' ? parseInt(anoIngresso, 10) : anoIngresso,
-        // semestre
       }
-    });
-    console.log('Usuário criado:', user);
+    }); 
 
-    // Remover a senha do retorno
     const { password: _, ...userWithoutPassword } = user;
 
     return NextResponse.json(
@@ -70,7 +58,6 @@ export async function POST(request: NextRequest) {
     );
 
   } catch (error) {
-    console.error('Erro detalhado no cadastro:', error);
     if (error instanceof z.ZodError) {
       return NextResponse.json(
         { error: "Dados inválidos", details: error.errors },
@@ -78,7 +65,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    console.error("Erro no cadastro:", error);
     return NextResponse.json(
       { error: "Erro interno do servidor" },
       { status: 500 }

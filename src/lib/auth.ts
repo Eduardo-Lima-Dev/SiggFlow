@@ -12,10 +12,9 @@ export const authOptions: NextAuthOptions = {
         password: { label: "Senha", type: "password" }
       },
       async authorize(credentials) {
-        console.log('INICIANDO AUTHORIZE', credentials);
+
         try {
           if (!credentials?.email || !credentials?.password) {
-            console.log('Faltando email ou senha');
             return null;
           }
 
@@ -34,26 +33,19 @@ export const authOptions: NextAuthOptions = {
             }
           });
 
-          console.log('USER FOUND:', user);
           if (!user) {
-            console.log('Usuário não encontrado');
             return null;
           }
 
-          console.log('PASSWORD RECEBIDA:', credentials.password);
-          console.log('HASH NO BANCO:', user.password);
           const isPasswordValid = await bcrypt.compare(
             credentials.password,
             user.password
           );
-          console.log('IS PASSWORD VALID?', isPasswordValid);
 
           if (!isPasswordValid) {
-            console.log('Senha inválida');
             return null;
           }
 
-          console.log('USER AUTHORIZED:', user);
           return {
             id: user.id,
             email: user.email,
@@ -64,7 +56,6 @@ export const authOptions: NextAuthOptions = {
             // semestre: user.semestre,
           };
         } catch (e) {
-          console.error('ERRO NO AUTHORIZE:', e);
           return null;
         }
       }

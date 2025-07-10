@@ -77,20 +77,17 @@ export default function DashboardPage() {
   const [modalSemestre, setModalSemestre] = useState<{semestre: string, disciplinas: any[]} | null>(null);
   const [confirmandoSemestre, setConfirmandoSemestre] = useState(false);
 
-  // Controla o estado do sidebar baseado no tamanho da tela
   useEffect(() => {
     const handleResize = () => {
-      if (window.innerWidth >= 1024) { // lg breakpoint
+      if (window.innerWidth >= 1024) {
         setSidebarAberta(true);
       } else {
         setSidebarAberta(false);
       }
     };
 
-    // Define o estado inicial
     handleResize();
 
-    // Adiciona listener para mudanças de tamanho
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
@@ -116,7 +113,6 @@ export default function DashboardPage() {
       .finally(() => setLoading(false));
   }, [status]);
 
-  // Função para carregar optativas
   const carregarOptativas = async () => {
     setLoadingOptativas(true);
     try {
@@ -134,7 +130,6 @@ export default function DashboardPage() {
     }
   };
 
-  // Função para filtrar optativas baseada no termo de busca
   const optativasFiltradas = optativas.filter(optativa => {
     if (!termoBusca) return true;
     const termo = termoBusca.toLowerCase();
@@ -144,14 +139,13 @@ export default function DashboardPage() {
     );
   });
 
-  // Remover duplicidade: se houver mais de uma optativa com o mesmo código, mostrar só a que já foi adicionada (adicionada=true), senão mostrar a primeira
   const optativasUnicas = Object.values(
     optativasFiltradas.reduce((acc, opt) => {
       if (!acc[opt.codigo] || opt.adicionada) {
         acc[opt.codigo] = opt;
       }
       return acc;
-    }, {} as Record<string, any>) // Corrigido para 'any' para evitar erro de 'unknown'
+    }, {} as Record<string, any>)
   );
 
   if (status === 'loading' || loading) {
@@ -173,7 +167,6 @@ export default function DashboardPage() {
     );
   }
 
-  // reúne todos os semestres presentes em completas e pendentes
   const semestres = Array.from(
     new Set([
       ...Object.keys(disciplinas?.completas || {}),
@@ -181,7 +174,6 @@ export default function DashboardPage() {
     ])
   ).sort((a, b) => Number(a) - Number(b));
 
-  // Função para filtrar disciplinas baseado nos filtros ativos
   const getDisciplinasFiltradas = (semestre: string) => {
     const disciplinasSemestre = [
       ...(disciplinas?.completas[semestre] || []),
@@ -194,12 +186,10 @@ export default function DashboardPage() {
       const isOptativa = disc.obrigatoria === false;
       const isAtrasada = disc.status === 'ATRASADO';
 
-      // Se nenhum filtro está ativo, mostra todas
       if (!filtros.completos && !filtros.pendentes && !filtros.optativas && !filtros.atrasadas) {
         return true;
       }
 
-      // Aplica filtros
       let mostrar = true;
       
       if (filtros.completos && !isCompleta) mostrar = false;
@@ -214,22 +204,17 @@ export default function DashboardPage() {
   const totalCompletas = semestres.reduce((acc, sem) => acc + getDisciplinasFiltradas(sem).filter((d: any) => d.status === 'CONCLUIDA').length, 0);
   const totalPendentes = semestres.reduce((acc, sem) => acc + getDisciplinasFiltradas(sem).filter((d: any) => d.status !== 'CONCLUIDA').length, 0);
 
-  // Função para buscar pré-requisitos e dependentes
   function getPreRequisitosAndDependentes(disciplina: any) {
     if (!disciplinas) return { preRequisitos: [], dependentes: [] };
-    // Junta todas as disciplinas do curso
     const todasDisciplinas = [
       ...Object.values(disciplinas.completas || {}).flat(),
       ...Object.values(disciplinas.pendentes || {}).flat()
     ];
-    // Mapa de código para disciplina
     const mapCodigo = Object.fromEntries(todasDisciplinas.map(d => [(d as any).codigo, d]));
-    // Progresso do usuário (por id)
     const progresso: Record<string, string> = {};
     todasDisciplinas.forEach(d => {
       if ((d as any).id && (d as any).status) progresso[(d as any).id] = (d as any).status;
     });
-    // Pré-requisitos desta disciplina
     const codigosPre = ((disciplina.preRequisitos || '') as string).split(/[;,]/).map((s: any) => s.trim()).filter(Boolean);
     const preRequisitos = codigosPre.map((codigo: any) => {
       const d = mapCodigo[codigo] as any;
@@ -239,7 +224,6 @@ export default function DashboardPage() {
         completa: d.status === 'CONCLUIDA',
       } : { codigo, nome: codigo, completa: false };
     });
-    // Disciplinas que dependem desta
     const dependentes = todasDisciplinas.filter(d =>
       ((d as any).preRequisitos || '').split(/[;,]/).map((s: any) => s.trim()).includes(disciplina.codigo)
     ).map(d => ({ codigo: (d as any).codigo, nome: (d as any).nome, completa: (d as any).status === 'CONCLUIDA' }));
@@ -263,7 +247,6 @@ export default function DashboardPage() {
       });
       setModalOpen(false);
       toast.success(`Progresso da disciplina '${modalDisciplina.nome}' salvo como ${modalDisciplina.status}${modalDisciplina.semestre ? ` no ${modalDisciplina.semestre}º semestre` : ''}.`);
-      // Recarregar disciplinas
       setLoading(true);
       fetch('/api/disciplinas')
         .then(res => res.json())
@@ -289,18 +272,15 @@ export default function DashboardPage() {
   return (
     <ProtectedRoute>
       <div className="min-h-screen bg-slate-900 text-gray-100 flex flex-col lg:flex-row">
-        {/* SIDEBAR DESKTOP */}
         <aside className={`hidden lg:flex flex-col bg-slate-800/80 backdrop-blur-md rounded-xl m-4 sticky top-4 h-[calc(100vh-2rem)] transition-all duration-300 z-20 ${sidebarAberta ? 'w-64' : 'w-20'}`}>
-          {/* Quando o sidebar estiver fechado, mostrar o ícone de filtro no topo */}
           {!sidebarAberta && (
             <div className="flex items-center justify-center mt-4 mb-2">
               <FunnelIcon className="h-6 w-6 text-indigo-400" />
             </div>
           )}
-          {sidebarAberta && (
-            <div className="flex flex-col h-full p-6">
-              {/* Filtros no topo */}
-              <div>
+                      {sidebarAberta && (
+              <div className="flex flex-col h-full p-6">
+                <div>
                 <div className="flex items-center justify-between mb-6">
                   <span className="text-xl font-semibold tracking-wide">Filtros</span>
                   <FunnelIcon className="h-6 w-6 text-indigo-400" />
@@ -327,7 +307,6 @@ export default function DashboardPage() {
                   ))}
                 </div>
               </div>
-              {/* Legenda centralizada verticalmente */}
               <div className="flex-1 flex items-center justify-center">
                 <div className="space-y-2 w-full">
                   <div className="text-xs text-slate-400 font-semibold mb-1">Legenda:</div>
@@ -357,9 +336,7 @@ export default function DashboardPage() {
               </div>
             </div>
           )}
-          {/* Spacer para empurrar o rodapé para baixo, sempre presente */}
           <div className="flex-1" />
-          {/* Rodapé: botão de abrir/fechar */}
           <div className="flex items-center justify-center h-20 border-t border-slate-700 p-2">
             {sidebarAberta ? (
               <div className="flex w-full">
@@ -401,12 +378,9 @@ export default function DashboardPage() {
           </div>
         </aside>
 
-        {/* MAIN CONTENT */}
         <main className="flex-1 flex flex-col space-y-3 lg:space-y-6 m-2 lg:m-4">
-          {/* HEADER */}
           <div className="flex flex-col md:flex-row md:items-center md:justify-between space-y-3 md:space-y-0">
             <h1 className="text-2xl lg:text-4xl font-extrabold">Bem-vindo, {session?.user?.name}!</h1>
-            {/* Botão Sair centralizado no mobile */}
             <button
               onClick={() => signOut({ callbackUrl: '/login' })}
               className="block lg:hidden px-4 py-2 bg-red-500 hover:bg-red-600 rounded-md font-medium transition-colors text-sm flex items-center gap-2 w-full justify-center"
@@ -414,7 +388,6 @@ export default function DashboardPage() {
               <ArrowRightOnRectangleIcon className="h-5 w-5" />
               Sair
             </button>
-            {/* Botão Sair alinhado à direita no desktop */}
             <button
               onClick={() => signOut({ callbackUrl: '/login' })}
               className="hidden lg:flex px-4 lg:px-5 py-2 bg-red-500 hover:bg-red-600 rounded-md font-medium transition-colors text-sm lg:text-base items-center gap-2"
@@ -424,7 +397,6 @@ export default function DashboardPage() {
             </button>
           </div>
 
-          {/* INFO DO ALUNO */}
           <div className="bg-slate-800 rounded-xl p-4 lg:p-5 flex flex-col lg:flex-row justify-between space-y-3 lg:space-y-0">
             {[
               { label: 'Email', value: session?.user?.email },
@@ -450,7 +422,6 @@ export default function DashboardPage() {
             ))}
           </div>
 
-          {/* CARDS DE CONTAGEM */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 lg:gap-6">
             {[
               { label: 'Matérias Completas', value: totalCompletas, color: 'green' },
@@ -466,7 +437,6 @@ export default function DashboardPage() {
             ))}
           </div>
 
-          {/* CARD DE FILTRO MOBILE */}
           <div className="block lg:hidden">
             <div className="bg-slate-800/80 backdrop-blur-md rounded-xl my-2 flex flex-col transition-all duration-300 z-20">
               <div className="p-4 flex-1 overflow-auto">
@@ -496,7 +466,6 @@ export default function DashboardPage() {
                     </Switch.Group>
                   ))}
                 </div>
-                {/* Legenda de status */}
                 <div className="mt-6 space-y-2">
                   <div className="text-xs text-slate-400 font-semibold mb-1">Legenda:</div>
                   <div className="flex flex-col gap-2">
@@ -544,7 +513,6 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          {/* GRID DE SEMESTRES EM LISTA VERTICAL */}
           <div className="py-2 lg:py-4">
             <div className="flex flex-col gap-4 lg:gap-8">
               {semestres.map(sem => (
@@ -586,10 +554,8 @@ export default function DashboardPage() {
             saving={saving}
           />
 
-          {/* Modal de Optativas */}
           {modalOptativaOpen && (
             <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-              {/* Overlay opaco */}
               <div className="fixed inset-0 bg-slate-800/80 transition-opacity" aria-hidden="true" />
               <div className="relative bg-slate-900 rounded-2xl shadow-xl max-w-4xl w-full mx-auto p-4 sm:p-8 z-10 max-h-[80vh] overflow-y-auto">
                 <button className="absolute top-2 sm:top-4 right-2 sm:right-4 text-slate-400 hover:text-white text-2xl font-bold focus:outline-none" onClick={() => {
@@ -612,7 +578,6 @@ export default function DashboardPage() {
                 </div>
 
                 {modoAdicionar ? (
-                  // Modo de adicionar nova optativa
                   <div className="space-y-4">
                     <h3 className="text-lg font-semibold text-white mb-4">Adicionar Nova Optativa</h3>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
@@ -673,14 +638,12 @@ export default function DashboardPage() {
                             })
                             .finally(() => setLoading(false));
                           
-                          // Fecha o modal após salvar
                           setModalOptativaOpen(false);
                         }}
                       >Salvar</button>
                     </div>
                   </div>
                 ) : optativaParaAdicionar ? (
-                  // Modo de selecionar semestre para adicionar optativa
                   <div className="space-y-4">
                     <h3 className="text-lg font-semibold text-white mb-4">Selecionar Semestre para: {optativaParaAdicionar.nome}</h3>
                     <div className="bg-slate-800 rounded-lg p-4 space-y-4">
@@ -790,7 +753,6 @@ export default function DashboardPage() {
                     </div>
                   </div>
                 ) : optativaSelecionada ? (
-                  // Modo de editar optativa selecionada
                   <div className="space-y-4">
                     <h3 className="text-lg font-semibold text-white mb-4">Editar Optativa: {optativaSelecionada.nome}</h3>
                     <div className="bg-slate-800 rounded-lg p-4 space-y-4">
@@ -860,12 +822,10 @@ export default function DashboardPage() {
                     </div>
                   </div>
                 ) : (
-                  // Lista de optativas existentes
-                  <div>
-                    <h3 className="text-lg font-semibold text-white mb-4">Optativas Disponíveis</h3>
-                    
-                    {/* Campo de busca */}
-                    <div className="mb-4">
+                                      <div>
+                      <h3 className="text-lg font-semibold text-white mb-4">Optativas Disponíveis</h3>
+                      
+                      <div className="mb-4">
                       <div className="relative">
                         <input
                           type="text"
@@ -940,13 +900,16 @@ export default function DashboardPage() {
         </main>
       </div>
 
-        {/* Modal de confirmação para concluir todas as matérias do semestre */}
-        <Dialog open={!!modalSemestre} onClose={() => setModalSemestre(null)} className="fixed z-50 inset-0 overflow-y-auto">
-          <div className="fixed inset-0 bg-slate-800/80 transition-opacity" aria-hidden="true" />
-          <div className="flex items-center justify-center min-h-screen px-2 sm:px-4">
+        {modalSemestre && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <div 
+              className="fixed inset-0 bg-slate-800/80 transition-opacity" 
+              aria-hidden="true" 
+              onClick={() => setModalSemestre(null)}
+            />
             <div className="relative bg-slate-900 rounded-2xl shadow-xl max-w-sm w-full mx-auto p-6 z-10">
-              <Dialog.Title className="text-lg font-bold text-white mb-4">Concluir todas as matérias?</Dialog.Title>
-              <p className="text-slate-300 mb-6">Deseja marcar todas as matérias do <b>{modalSemestre?.semestre}º semestre</b> como <b>concluídas</b>? Esta ação não pode ser desfeita.</p>
+              <h2 className="text-lg font-bold text-white mb-4">Concluir todas as matérias?</h2>
+              <p className="text-slate-300 mb-6">Deseja marcar todas as matérias do <b>{modalSemestre.semestre}º semestre</b> como <b>concluídas</b>? Esta ação não pode ser desfeita.</p>
               <div className="flex justify-end gap-3 mt-6">
                 <button className="px-4 py-2 rounded bg-slate-600 hover:bg-slate-700 text-white font-semibold" onClick={() => setModalSemestre(null)}>Cancelar</button>
                 <button
@@ -994,7 +957,7 @@ export default function DashboardPage() {
               </div>
             </div>
           </div>
-        </Dialog>
+        )}
     </ProtectedRoute>
   );
 }

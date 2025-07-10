@@ -39,11 +39,11 @@ const DisciplinaModal: React.FC<DisciplinaModalProps> = ({ open, onClose, discip
   if (!disciplina) return null;
   return (
     <Dialog open={open} onClose={onClose} className="fixed z-50 inset-0 overflow-y-auto">
-      {/* Overlay opaco */}
+
       <div className="fixed inset-0 bg-slate-800/80 transition-opacity" aria-hidden="true" />
       <div className="flex items-center justify-center min-h-screen px-2 sm:px-4">
         <div className="relative bg-slate-900 rounded-2xl shadow-xl max-w-sm sm:max-w-xl w-full mx-auto p-4 sm:p-8 z-10">
-          {/* Botão X para fechar */}
+
           <button
             className="absolute top-2 sm:top-4 right-2 sm:right-4 text-slate-400 hover:text-white text-2xl font-bold focus:outline-none"
             onClick={onClose}
@@ -52,7 +52,7 @@ const DisciplinaModal: React.FC<DisciplinaModalProps> = ({ open, onClose, discip
           >
             ×
           </button>
-          {/* Header */}
+
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-2 pr-8">
             <Dialog.Title className="text-lg sm:text-2xl font-bold text-white mb-2 sm:mb-0">
               {disciplina.codigo ? `${disciplina.codigo} - ` : ''}{disciplina.nome}
@@ -82,7 +82,7 @@ const DisciplinaModal: React.FC<DisciplinaModalProps> = ({ open, onClose, discip
             )}
           </div>
           <hr className="border-slate-700 mb-4" />
-          {/* Status */}
+
           <div className="mb-4">
             <label className="block text-slate-400 mb-1 font-medium">Status</label>
             <select
@@ -97,7 +97,7 @@ const DisciplinaModal: React.FC<DisciplinaModalProps> = ({ open, onClose, discip
               <option value="REPROVADA">Reprovada</option>
             </select>
           </div>
-          {/* Pré-requisitos reais */}
+
           <div className="mb-6">
             <label className="block text-slate-400 mb-1 font-medium">Pré-Requisitos</label>
             <div className="flex flex-col gap-2 mt-2">
@@ -113,7 +113,7 @@ const DisciplinaModal: React.FC<DisciplinaModalProps> = ({ open, onClose, discip
               )}
             </div>
           </div>
-          {/* Disciplinas que dependem desta */}
+
           <div className="mb-6">
             <label className="block text-slate-400 mb-1 font-medium">Disciplinas que dependem desta</label>
             <div className="flex flex-col gap-2 mt-2">
@@ -129,7 +129,7 @@ const DisciplinaModal: React.FC<DisciplinaModalProps> = ({ open, onClose, discip
               )}
             </div>
           </div>
-          {/* Botões */}
+              
           <div className="flex flex-col sm:flex-row justify-end gap-2 sm:gap-4 mt-8">
             <button
               className="bg-slate-600 hover:bg-slate-700 text-white px-4 sm:px-6 py-2 rounded font-semibold text-sm sm:text-base"
