@@ -360,29 +360,32 @@ export default function DashboardPage() {
           {/* Rodapé: botão de abrir/fechar */}
           <div className="flex items-center justify-center h-20 border-t border-slate-700 p-2">
             {sidebarAberta ? (
-              <button
-                className="flex items-center justify-between w-full bg-indigo-500 hover:bg-indigo-600 text-white font-semibold rounded-xl px-4 py-3 transition-all shadow-md"
-                onClick={async () => {
-                  await carregarOptativas();
-                  setModalOptativaOpen(true);
-                  setModoAdicionar(false);
-                  setOptativaSelecionada(null);
-                  setOptativaParaAdicionar(null);
-                  setTermoBusca('');
-                }}
-              >
-                <span className="flex items-center gap-2">
-                  <PlusIcon className="h-5 w-5" />
-                  <span>Adicionar Optativas</span>
-                </span>
+              <div className="flex w-full">
+                <button
+                  className="flex items-center justify-center flex-1 bg-indigo-500 hover:bg-indigo-600 text-white font-semibold rounded-xl px-4 py-3 transition-all shadow-md"
+                  onClick={async () => {
+                    await carregarOptativas();
+                    setModalOptativaOpen(true);
+                    setModoAdicionar(false);
+                    setOptativaSelecionada(null);
+                    setOptativaParaAdicionar(null);
+                    setTermoBusca('');
+                  }}
+                >
+                  <span className="flex items-center gap-2">
+                    <PlusIcon className="h-5 w-5" />
+                    <span>Adicionar Optativas</span>
+                  </span>
+                </button>
                 <button
                   onClick={e => { e.stopPropagation(); setSidebarAberta(false); }}
-                  className="ml-2 p-1 rounded hover:bg-indigo-700 transition-colors"
+                  className="flex items-center justify-center pl-3 ml-3 p-1 rounded hover:bg-indigo-700 transition-colors"
                   title="Fechar sidebar"
+                  style={{ minWidth: 44 }}
                 >
                   <ChevronLeftIcon className="h-5 w-5 text-white" />
                 </button>
-              </button>
+              </div>
             ) : (
               <button
                 className="flex items-center justify-center w-16 h-12 bg-indigo-500 hover:bg-indigo-600 text-white font-semibold rounded-xl transition-all shadow-md"
@@ -401,9 +404,18 @@ export default function DashboardPage() {
           {/* HEADER */}
           <div className="flex flex-col md:flex-row md:items-center md:justify-between space-y-3 md:space-y-0">
             <h1 className="text-2xl lg:text-4xl font-extrabold">Bem-vindo, {session?.user?.name}!</h1>
+            {/* Botão Sair centralizado no mobile */}
             <button
               onClick={() => signOut({ callbackUrl: '/login' })}
-              className="px-4 lg:px-5 py-2 bg-red-500 hover:bg-red-600 rounded-md font-medium transition-colors text-sm lg:text-base flex items-center gap-2"
+              className="block lg:hidden px-4 py-2 bg-red-500 hover:bg-red-600 rounded-md font-medium transition-colors text-sm flex items-center gap-2 w-full justify-center"
+            >
+              <ArrowRightOnRectangleIcon className="h-5 w-5" />
+              Sair
+            </button>
+            {/* Botão Sair alinhado à direita no desktop */}
+            <button
+              onClick={() => signOut({ callbackUrl: '/login' })}
+              className="hidden lg:flex px-4 lg:px-5 py-2 bg-red-500 hover:bg-red-600 rounded-md font-medium transition-colors text-sm lg:text-base items-center gap-2"
             >
               <ArrowRightOnRectangleIcon className="h-5 w-5" />
               Sair
