@@ -59,6 +59,7 @@ export default function DashboardPage() {
   const [modalPreRequisitos, setModalPreRequisitos] = useState<any[]>([]);
   const [modalDependentes, setModalDependentes] = useState<any[]>([]);
   const [saving, setSaving] = useState(false);
+  const [removing, setRemoving] = useState(false);
   const [modalOptativaOpen, setModalOptativaOpen] = useState(false);
   const [optativas, setOptativas] = useState<any[]>([]);
   const [loadingOptativas, setLoadingOptativas] = useState(false);
@@ -266,6 +267,51 @@ export default function DashboardPage() {
         .finally(() => setLoading(false));
     } finally {
       setSaving(false);
+    }
+  }
+
+  async function handleRemoverOptativa() {
+    if (!modalDisciplina) return;
+    setRemoving(true);
+    try {
+      const response = await fetch('/api/disciplinas/optativa/delete', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          disciplinaId: modalDisciplina.id,
+        }),
+      });
+      
+      const data = await response.json();
+      
+      if (data.error) {
+        toast.error(`Erro ao remover optativa: ${data.error}`);
+      } else {
+        toast.success(`Optativa '${modalDisciplina.nome}' removida com sucesso!`);
+        setModalOpen(false);
+        
+        setLoading(true);
+        fetch('/api/disciplinas')
+          .then(res => res.json())
+          .then((data: DisciplinasAPIResponse & { error?: string }) => {
+            if (data.error) {
+              toast.error(`Erro ao recarregar disciplinas: ${data.error}`);
+              setErro(data.error);
+              setDisciplinas(null);
+            } else {
+              setDisciplinas(data);
+            }
+          })
+          .catch(() => {
+            toast.error('Erro ao recarregar disciplinas.');
+            setErro('Erro ao buscar disciplinas');
+          })
+          .finally(() => setLoading(false));
+      }
+    } catch (error) {
+      toast.error('Erro ao remover optativa');
+    } finally {
+      setRemoving(false);
     }
   }
 
@@ -551,7 +597,9 @@ export default function DashboardPage() {
             preRequisitos={modalPreRequisitos}
             dependentes={modalDependentes}
             onSalvar={handleSalvarDisciplina}
+            onRemover={handleRemoverOptativa}
             saving={saving}
+            removing={removing}
           />
 
           {modalOptativaOpen && (

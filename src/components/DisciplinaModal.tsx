@@ -16,7 +16,9 @@ interface DisciplinaModalProps {
   preRequisitos?: PreRequisito[];
   dependentes?: PreRequisito[];
   onSalvar?: () => void;
+  onRemover?: () => void;
   saving?: boolean;
+  removing?: boolean;
 }
 
 const STATUS_LABELS: Record<string, string> = {
@@ -35,7 +37,7 @@ const STATUS_COLORS: Record<string, string> = {
   ATRASADO: 'bg-gray-600 text-white',
 };
 
-const DisciplinaModal: React.FC<DisciplinaModalProps> = ({ open, onClose, disciplina, setDisciplina, preRequisitos, dependentes, onSalvar, saving }) => {
+const DisciplinaModal: React.FC<DisciplinaModalProps> = ({ open, onClose, disciplina, setDisciplina, preRequisitos, dependentes, onSalvar, onRemover, saving, removing }) => {
   if (!disciplina) return null;
   return (
     <Dialog open={open} onClose={onClose} className="fixed z-50 inset-0 overflow-y-auto">
@@ -134,14 +136,23 @@ const DisciplinaModal: React.FC<DisciplinaModalProps> = ({ open, onClose, discip
             <button
               className="bg-slate-600 hover:bg-slate-700 text-white px-4 sm:px-6 py-2 rounded font-semibold text-sm sm:text-base"
               onClick={onClose}
-              disabled={!!saving}
+              disabled={!!saving || !!removing}
             >
               Cancelar
             </button>
+            {disciplina.obrigatoria === false && onRemover && (
+              <button
+                className="bg-red-600 hover:bg-red-700 text-white px-4 sm:px-6 py-2 rounded font-semibold text-sm sm:text-base"
+                onClick={onRemover}
+                disabled={!!saving || !!removing}
+              >
+                {removing ? 'Removendo...' : 'Remover Optativa'}
+              </button>
+            )}
             <button
               className="bg-teal-600 hover:bg-teal-700 text-white px-4 sm:px-6 py-2 rounded font-semibold text-sm sm:text-base"
               onClick={onSalvar}
-              disabled={!!saving}
+              disabled={!!saving || !!removing}
             >
               {saving ? 'Salvando...' : 'Salvar'}
             </button>
