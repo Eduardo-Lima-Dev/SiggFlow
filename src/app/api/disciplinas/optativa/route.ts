@@ -75,11 +75,12 @@ export async function POST(req: Request) {
       } else {
         disciplina = await prisma.disciplina.update({
           where: { id: disciplina.id },
-                      data: {
-              curriculoId: curriculo.id,
-              cursoId: cursoObj.id,
-              semestre: Number(semestre),
-            },
+          data: {
+            curriculoId: curriculo.id,
+            cursoId: cursoObj.id,
+            semestre: Number(semestre),
+            obrigatoria: false, // Garante que seja marcada como optativa
+          },
         });
       }
     } else {
@@ -88,6 +89,7 @@ export async function POST(req: Request) {
           where: { id: disciplina.id },
           data: {
             semestre: Number(semestre),
+            obrigatoria: false, // Garante que continue como optativa
           },
         });
       }
