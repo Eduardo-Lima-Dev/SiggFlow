@@ -178,7 +178,7 @@ function LoginForm({ onSwitch, onForgotPassword }: { onSwitch: () => void, onFor
           tabIndex={-1}
           onClick={onForgotPassword}
         >
-          Não consigo realizar o login
+          Esqueci minha senha
         </button>
         <button
           type="button"
@@ -410,7 +410,7 @@ function ResetPasswordForm({ onSwitchLogin }: { onSwitchLogin: () => void }) {
       if (!res.ok) {
         setError(data.message || "Erro ao solicitar redefinição de senha");
       } else {
-        setSuccess("Se o email estiver cadastrado, você receberá instruções para redefinir sua senha.");
+        setSuccess("Se o email estiver cadastrado, você receberá instruções para redefinir sua senha. O email pode demorar alguns minutos para chegar.");
       }
     } catch (err) {
       setError("Erro ao solicitar redefinição de senha");
