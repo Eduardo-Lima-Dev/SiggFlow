@@ -79,7 +79,7 @@ export async function POST(req: Request) {
             curriculoId: curriculo.id,
             cursoId: cursoObj.id,
             semestre: Number(semestre),
-            obrigatoria: false, // Garante que seja marcada como optativa
+            obrigatoria: false,
           },
         });
       }
@@ -89,7 +89,7 @@ export async function POST(req: Request) {
           where: { id: disciplina.id },
           data: {
             semestre: Number(semestre),
-            obrigatoria: false, // Garante que continue como optativa
+            obrigatoria: false,
           },
         });
       }
