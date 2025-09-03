@@ -11,33 +11,11 @@ Script mais simples que executa tudo em uma única execução:
 ./setup-one-command.sh
 ```
 
-### 2. `setup-neon.sh`
-Script específico para o banco Neon DB:
-
-```bash
-./setup-neon.sh
-```
-
-### 3. `setup-production.sh`
-Script genérico que requer a variável `DATABASE_URL` configurada:
-
-```bash
-export DATABASE_URL="sua_string_de_conexao"
-./setup-production.sh
-```
-
 ## 📋 O que os Scripts Fazem
 
 1. **Gera o cliente Prisma** (`npx prisma generate`)
 2. **Executa as migrações** (`npx prisma migrate deploy`)
 3. **Popula o banco com dados** (`npx prisma db seed`)
-
-## 🎯 Para o Banco Neon DB
-
-O banco Neon já está configurado com a string de conexão:
-```
-postgresql://neondb_owner:npg_X1CsovmxH2NI@ep-lucky-king-adho22zs-pooler.c-2.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require
-```
 
 ## 🛠️ Pré-requisitos
 
@@ -51,7 +29,7 @@ Se preferir executar os comandos manualmente:
 
 ```bash
 # 1. Configure a DATABASE_URL
-export DATABASE_URL="postgresql://neondb_owner:npg_X1CsovmxH2NI@ep-lucky-king-adho22zs-pooler.c-2.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require"
+export DATABASE_URL=""
 
 # 2. Gere o cliente Prisma
 npx prisma generate

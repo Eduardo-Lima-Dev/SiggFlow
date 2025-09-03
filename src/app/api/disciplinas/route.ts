@@ -76,22 +76,36 @@ export async function GET(req: Request) {
     where: {
       curriculoId: curriculo.id,
       obrigatoria: false
-    }
+    },
+    orderBy: [{ nome: 'asc' }]
   });
 
-  const optativasAdicionadas = await prisma.userDisciplinaProgresso.findMany({
+  const progressoOptativas = await prisma.userDisciplinaProgresso.findMany({
     where: {
       user: { email: userEmail },
       disciplinaId: { in: todasOptativas.map(d => d.id) }
     },
-    include: {
-      disciplina: true
-    }
+    select: {
+      disciplinaId: true,
+      status: true,
+      semestre: true,
+    },
+  });
+
+  const progressoOptativasMap = new Map(progressoOptativas.map(p => [p.disciplinaId, p]));
+
+  const optativasComProgresso = todasOptativas.map(opt => {
+    const progresso = progressoOptativasMap.get(opt.id);
+    return {
+      ...opt,
+      status: progresso?.status || 'PENDENTE',
+      semestre: progresso?.semestre || opt.semestre 
+    };
   });
 
   const disciplinas = [
     ...disciplinasObrigatorias,
-    ...optativasAdicionadas.map(op => op.disciplina)
+    ...optativasComProgresso
   ];
 
   const progresso = await prisma.userDisciplinaProgresso.findMany({
