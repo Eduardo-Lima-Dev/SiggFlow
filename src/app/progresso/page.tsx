@@ -49,7 +49,7 @@ export default function ProgressoPage() {
   }, []);
 
   function handleStatusChange(disciplinaId: string, status: string, semestre: number) {
-    setProgresso(prev => ({
+    setProgresso((prev: Record<string, { status: string; semestre: number }>) => ({
       ...prev,
       [disciplinaId]: { status, semestre },
     }));
@@ -57,10 +57,10 @@ export default function ProgressoPage() {
 
   async function handleSalvar() {
     setLoading(true);
-    const payload = Object.entries(progresso).map(([disciplinaId, { status, semestre }]) => ({
+    const payload = Object.entries(progresso).map(([disciplinaId, p]) => ({
       disciplinaId,
-      status,
-      semestre,
+      status: p.status,
+      semestre: p.semestre,
     }));
     const res = await fetch("/api/disciplinas/progresso", {
       method: "POST",
@@ -99,7 +99,7 @@ export default function ProgressoPage() {
               value={semestreSelecionado ?? ''}
               onChange={e => setSemestreSelecionado(Number(e.target.value))}
             >
-              {semestres.map(sem => (
+              {semestres.map((sem: number) => (
                 <option key={sem} value={sem}>{sem}º Semestre</option>
               ))}
             </select>

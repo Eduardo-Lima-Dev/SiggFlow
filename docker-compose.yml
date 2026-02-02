@@ -1,0 +1,46 @@
+services:
+  postgres:
+    image: postgres:15-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: siggflow
+      POSTGRES_PASSWORD: siggflow
+      POSTGRES_DB: siggflow
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U siggflow"]
+      interval: 2s
+      timeout: 5s
+      retries: 15
+      start_period: 15s
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    volumes:
+      - seed_state:/app/seed_state
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      HOSTNAME: "0.0.0.0"
+      PORT: "3000"
+      DATABASE_URL: postgresql://siggflow:siggflow@postgres:5432/siggflow
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: "5432"
+      NEXTAUTH_URL: ${NEXTAUTH_URL:-http://localhost:3000}
+      NEXTAUTH_SECRET: ${NEXTAUTH_SECRET}
+    env_file:
+      - .env
+
+volumes:
+  postgres_data:
+  seed_state:

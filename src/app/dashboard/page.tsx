@@ -5,9 +5,10 @@ import { useSession, signOut } from 'next-auth/react';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import { useRouter } from 'next/navigation';
 import { Switch, Dialog } from '@headlessui/react';
-import { PlusIcon, FunnelIcon, ChevronRightIcon, ChevronLeftIcon, ArrowRightOnRectangleIcon } from '@heroicons/react/24/outline';
+import { PlusIcon, FunnelIcon, ChevronRightIcon, ChevronLeftIcon, ArrowRightOnRectangleIcon, DocumentArrowUpIcon } from '@heroicons/react/24/outline';
 import SemesterColumn from '@/components/SemesterColumn';
 import DisciplinaModal from '@/components/DisciplinaModal';
+import HistoricoUploadModal from '@/components/HistoricoUploadModal';
 import toast from 'react-hot-toast';
 
 const cursoLabels: Record<string, string> = {
@@ -77,6 +78,7 @@ export default function DashboardPage() {
   const [termoBusca, setTermoBusca] = useState('');
   const [modalSemestre, setModalSemestre] = useState<{semestre: string, disciplinas: any[]} | null>(null);
   const [confirmandoSemestre, setConfirmandoSemestre] = useState(false);
+  const [modalHistoricoOpen, setModalHistoricoOpen] = useState(false);
 
   useEffect(() => {
     const handleResize = () => {
@@ -468,19 +470,37 @@ export default function DashboardPage() {
             ))}
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 lg:gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 lg:gap-6">
             {[
               { label: 'Matérias Completas', value: totalCompletas, color: 'green' },
               { label: 'Matérias Pendentes', value: totalPendentes, color: 'yellow' },
-            ].map(card => (
-              <div
-                key={card.label}
-                className="bg-slate-800 rounded-2xl p-4 lg:p-6 flex flex-col items-center shadow-lg hover:shadow-xl transition-shadow"
-              >
-                <span className="text-2xl lg:text-4xl font-bold">{card.value}</span>
-                <span className={`mt-2 text-${card.color}-400 font-medium text-sm lg:text-base`}>{card.label}</span>
-              </div>
-            ))}
+              {
+                label: 'Importar Histórico',
+                value: null,
+                color: 'indigo',
+                action: true,
+              },
+            ].map(card =>
+              card.action ? (
+                <button
+                  key={card.label}
+                  onClick={() => setModalHistoricoOpen(true)}
+                  className="bg-slate-800 rounded-2xl p-4 lg:p-6 flex flex-col items-center justify-center shadow-lg hover:shadow-xl hover:bg-slate-700/80 transition-all border-2 border-dashed border-slate-600 hover:border-indigo-500/50"
+                >
+                  <DocumentArrowUpIcon className="h-10 w-10 text-indigo-400 mb-2" />
+                  <span className="text-indigo-400 font-medium text-sm lg:text-base">{card.label}</span>
+                  <span className="text-slate-500 text-xs mt-1">Upload do PDF do SIGAA</span>
+                </button>
+              ) : (
+                <div
+                  key={card.label}
+                  className="bg-slate-800 rounded-2xl p-4 lg:p-6 flex flex-col items-center shadow-lg hover:shadow-xl transition-shadow"
+                >
+                  <span className="text-2xl lg:text-4xl font-bold">{card.value}</span>
+                  <span className={`mt-2 text-${card.color}-400 font-medium text-sm lg:text-base`}>{card.label}</span>
+                </div>
+              )
+            )}
           </div>
 
           <div className="block lg:hidden">
@@ -600,6 +620,29 @@ export default function DashboardPage() {
             onRemover={handleRemoverOptativa}
             saving={saving}
             removing={removing}
+          />
+
+          <HistoricoUploadModal
+            open={modalHistoricoOpen}
+            onClose={() => setModalHistoricoOpen(false)}
+            onSuccess={() => {
+              setLoading(true);
+              fetch('/api/disciplinas')
+                .then(res => res.json())
+                .then((data: DisciplinasAPIResponse & { error?: string }) => {
+                  if (data.error) {
+                    toast.error(data.error);
+                    setErro(data.error);
+                    setDisciplinas(null);
+                  } else {
+                    setDisciplinas(data);
+                  }
+                })
+                .catch(() => {
+                  toast.error('Erro ao buscar disciplinas');
+                })
+                .finally(() => setLoading(false));
+            }}
           />
 
           {modalOptativaOpen && (
