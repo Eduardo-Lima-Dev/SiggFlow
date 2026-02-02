@@ -95,6 +95,23 @@ export default function DashboardPage() {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
+  const fecharModalOptativa = () => {
+    setModalOptativaOpen(false);
+    setTermoBusca('');
+    setModoAdicionar(false);
+    setOptativaSelecionada(null);
+    setOptativaParaAdicionar(null);
+  };
+
+  useEffect(() => {
+    if (!modalOptativaOpen) return;
+    const handleEsc = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') fecharModalOptativa();
+    };
+    window.addEventListener('keydown', handleEsc);
+    return () => window.removeEventListener('keydown', handleEsc);
+  }, [modalOptativaOpen]);
+
   useEffect(() => {
     if (status !== 'authenticated') return;
     setLoading(true);
@@ -194,12 +211,11 @@ export default function DashboardPage() {
       }
 
       let mostrar = true;
-      
       if (filtros.completos && !isCompleta) mostrar = false;
       if (filtros.pendentes && !isPendente) mostrar = false;
       if (filtros.optativas && !isOptativa) mostrar = false;
       if (filtros.atrasadas && !isAtrasada) mostrar = false;
-      
+
       return mostrar;
     });
   };
@@ -647,46 +663,96 @@ export default function DashboardPage() {
 
           {modalOptativaOpen && (
             <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-              <div className="fixed inset-0 bg-slate-800/80 transition-opacity" aria-hidden="true" />
-              <div className="relative bg-slate-900 rounded-2xl shadow-xl max-w-4xl w-full mx-auto p-4 sm:p-8 z-10 max-h-[80vh] overflow-y-auto">
-                <button className="absolute top-2 sm:top-4 right-2 sm:right-4 text-slate-400 hover:text-white text-2xl font-bold focus:outline-none" onClick={() => {
-                  setModalOptativaOpen(false);
-                  setTermoBusca('');
-                }}>×</button>
-                
-                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 sm:mb-6 gap-4 sm:gap-0">
+              <div
+                className="fixed inset-0 bg-slate-900/80 backdrop-blur-sm"
+                aria-hidden="true"
+                onClick={fecharModalOptativa}
+              />
+              <div
+                className="relative bg-slate-800 rounded-2xl shadow-2xl max-w-4xl w-full mx-auto p-4 sm:p-8 z-10 max-h-[80vh] overflow-y-auto border border-slate-700"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <button
+                  className="absolute top-2 sm:top-4 right-2 sm:right-4 text-slate-400 hover:text-white transition-colors"
+                  onClick={fecharModalOptativa}
+                  aria-label="Fechar"
+                >
+                  <span className="text-2xl font-bold">×</span>
+                </button>
+
+                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 sm:mb-6 gap-4 sm:gap-0 pr-8">
                   <h2 className="text-xl sm:text-2xl font-bold text-white">Gerenciar Optativas</h2>
-                  <button
-                    className="bg-indigo-600 hover:bg-indigo-700 text-white px-3 sm:px-4 py-2 rounded-lg font-semibold text-sm sm:text-base"
-                    onClick={() => {
-                      setModoAdicionar(true);
-                      setOptativaSelecionada(null);
-                      setNovaOptativa({ nome: '', codigo: '', cargaHoraria: '', status: 'PENDENTE', semestre: '' });
-                    }}
-                  >
-                    + Nova Optativa
-                  </button>
+                  {!modoAdicionar && !optativaParaAdicionar && !optativaSelecionada && (
+                    <button
+                      className="bg-indigo-600 hover:bg-indigo-700 text-white px-3 sm:px-4 py-2 rounded-xl font-semibold text-sm sm:text-base transition-colors"
+                      onClick={() => {
+                        setModoAdicionar(true);
+                        setOptativaSelecionada(null);
+                        setNovaOptativa({ nome: '', codigo: '', cargaHoraria: '', status: 'PENDENTE', semestre: '' });
+                      }}
+                    >
+                      + Nova Optativa
+                    </button>
+                  )}
                 </div>
 
                 {modoAdicionar ? (
                   <div className="space-y-4">
                     <h3 className="text-lg font-semibold text-white mb-4">Adicionar Nova Optativa</h3>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-                      <input className="w-full rounded p-2 sm:p-3 bg-slate-800 text-white text-sm sm:text-base" placeholder="Nome" value={novaOptativa.nome} onChange={e => setNovaOptativa(o => ({ ...o, nome: e.target.value }))} />
-                      <input className="w-full rounded p-2 sm:p-3 bg-slate-800 text-white text-sm sm:text-base" placeholder="Código" value={novaOptativa.codigo} onChange={e => setNovaOptativa(o => ({ ...o, codigo: e.target.value }))} />
-                      <input className="w-full rounded p-2 sm:p-3 bg-slate-800 text-white text-sm sm:text-base" placeholder="Carga Horária" value={novaOptativa.cargaHoraria} onChange={e => setNovaOptativa(o => ({ ...o, cargaHoraria: e.target.value }))} />
-                      <select className="w-full rounded p-2 sm:p-3 bg-slate-800 text-white text-sm sm:text-base" value={novaOptativa.status} onChange={e => setNovaOptativa(o => ({ ...o, status: e.target.value }))}>
-                        <option value="PENDENTE">Pendente</option>
-                        <option value="EM_ANDAMENTO">Em andamento</option>
-                        <option value="CONCLUIDA">Concluída</option>
-                        <option value="REPROVADA">Reprovada</option>
-                      </select>
-                      <select className="w-full rounded p-2 sm:p-3 bg-slate-800 text-white text-sm sm:text-base" value={novaOptativa.semestre} onChange={e => setNovaOptativa(o => ({ ...o, semestre: e.target.value }))}>
-                        <option value="">Selecione o semestre</option>
-                        {semestres.map(sem => (
-                          <option key={sem} value={sem}>{sem}º Semestre</option>
-                        ))}
-                      </select>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+                      <div>
+                        <label className="block text-slate-400 mb-1 font-medium">Nome</label>
+                        <input
+                          className="w-full py-2 px-3 rounded-lg bg-slate-800 text-white border border-slate-700 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                          placeholder="Nome da disciplina"
+                          value={novaOptativa.nome}
+                          onChange={e => setNovaOptativa(o => ({ ...o, nome: e.target.value }))}
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-slate-400 mb-1 font-medium">Código</label>
+                        <input
+                          className="w-full py-2 px-3 rounded-lg bg-slate-800 text-white border border-slate-700 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                          placeholder="Ex: QXD0001"
+                          value={novaOptativa.codigo}
+                          onChange={e => setNovaOptativa(o => ({ ...o, codigo: e.target.value }))}
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-slate-400 mb-1 font-medium">Carga Horária</label>
+                        <input
+                          className="w-full py-2 px-3 rounded-lg bg-slate-800 text-white border border-slate-700 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                          placeholder="Ex: 64"
+                          value={novaOptativa.cargaHoraria}
+                          onChange={e => setNovaOptativa(o => ({ ...o, cargaHoraria: e.target.value }))}
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-slate-400 mb-1 font-medium">Status</label>
+                        <select
+                          className="w-full py-2 px-3 rounded-lg bg-slate-800 text-white border border-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                          value={novaOptativa.status}
+                          onChange={e => setNovaOptativa(o => ({ ...o, status: e.target.value }))}
+                        >
+                          <option value="PENDENTE">Pendente</option>
+                          <option value="EM_ANDAMENTO">Em andamento</option>
+                          <option value="CONCLUIDA">Concluída</option>
+                          <option value="REPROVADA">Reprovada</option>
+                        </select>
+                      </div>
+                      <div className="sm:col-span-2">
+                        <label className="block text-slate-400 mb-1 font-medium">Semestre</label>
+                        <select
+                          className="w-full py-2 px-3 rounded-lg bg-slate-800 text-white border border-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                          value={novaOptativa.semestre}
+                          onChange={e => setNovaOptativa(o => ({ ...o, semestre: e.target.value }))}
+                        >
+                          <option value="">Selecione o semestre</option>
+                          {semestres.map(sem => (
+                            <option key={sem} value={sem}>{sem}º Semestre</option>
+                          ))}
+                        </select>
+                      </div>
                     </div>
                     <div className="flex flex-col sm:flex-row justify-end gap-2 sm:gap-4 mt-4 sm:mt-6">
                       <button className="bg-slate-600 hover:bg-slate-700 text-white px-4 sm:px-6 py-2 rounded font-semibold text-sm sm:text-base" onClick={() => setModoAdicionar(false)}>Cancelar</button>
@@ -753,9 +819,9 @@ export default function DashboardPage() {
                         </div>
                       </div>
                       <div>
-                        <label className="text-sm text-slate-400">Selecione o semestre onde deseja adicionar esta optativa:</label>
+                        <label className="block text-slate-400 mb-1 font-medium">Semestre</label>
                         <select 
-                          className="w-full rounded p-3 bg-slate-700 text-white mt-2"
+                          className="w-full py-2 px-3 rounded-lg bg-slate-800 text-white border border-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                           value={optativaParaAdicionar.semestreSelecionado || ''}
                           onChange={(e) => {
                             const semestre = parseInt(e.target.value);
@@ -772,9 +838,9 @@ export default function DashboardPage() {
                         </select>
                       </div>
                       <div>
-                        <label className="text-sm text-slate-400">Selecione o status:</label>
+                        <label className="block text-slate-400 mb-1 font-medium">Status</label>
                         <select
-                          className="w-full rounded p-3 bg-slate-700 text-white mt-2"
+                          className="w-full py-2 px-3 rounded-lg bg-slate-800 text-white border border-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                           value={optativaParaAdicionar.statusSelecionado || 'PENDENTE'}
                           onChange={e => setOptativaParaAdicionar({
                             ...optativaParaAdicionar,
@@ -865,10 +931,10 @@ export default function DashboardPage() {
                           <div className="text-white font-medium text-sm sm:text-base">{optativaSelecionada.status}</div>
                         </div>
                       </div>
-                      <div>
-                        <label className="text-sm text-slate-400">Semestre</label>
+                        <div>
+                          <label className="block text-slate-400 mb-1 font-medium">Semestre</label>
                         <select 
-                          className="w-full rounded p-3 bg-slate-700 text-white mt-1"
+                          className="w-full py-2 px-3 rounded-lg bg-slate-800 text-white border border-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                           value={optativaSelecionada.semestreUsuario || ''}
                           onChange={async (e) => {
                             const novoSemestre = parseInt(e.target.value);
